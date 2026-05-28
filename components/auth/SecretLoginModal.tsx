@@ -1,4 +1,3 @@
-// src/components/auth/SecretLoginModal.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -11,11 +10,12 @@ export default function SecretLoginModal() {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  // تم تغيير الاسم هنا لتجنب التعارض
+  const [errorMessage, setErrorMessage] = useState('') 
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
-  // الاستماع للوحة المفاتيح (Ctrl + Shift + L)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
@@ -30,20 +30,20 @@ export default function SecretLoginModal() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError('')
+    setErrorMessage('')
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    // سمينا الخطأ القادم من قاعدة البيانات signInError
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
-    if (error) {
-      setError('بيانات الدخول غير صحيحة')
+    if (signInError) {
+      setErrorMessage('بيانات الدخول غير صحيحة')
       setIsLoading(false)
       return
     }
 
-    // بعد تسجيل الدخول بنجاح، يتم توجيهك إلى لوحة التحكم المخفية
     setIsOpen(false)
     router.push('/admin')
   }
@@ -64,7 +64,6 @@ export default function SecretLoginModal() {
             className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 relative overflow-hidden"
             dir="rtl"
           >
-            {/* زر الإغلاق */}
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 left-4 text-zinc-500 hover:text-white transition-colors"
@@ -77,7 +76,7 @@ export default function SecretLoginModal() {
                 <Lock size={24} />
               </div>
               <h2 className="text-xl font-bold text-white">تسجيل دخول الإدارة</h2>
-              <p className="text-sm text-zinc-400 mt-1">هذه المنطقة مخصصة لإدارة الاستوديو فقط.</p>
+              <p className="text-sm text-zinc-400 mt-1">مرحباً عباس، هذه المنطقة مخصصة لك فقط.</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
@@ -102,7 +101,7 @@ export default function SecretLoginModal() {
                 />
               </div>
               
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+              {errorMessage && <p className="text-red-500 text-sm text-center">{errorMessage}</p>}
 
               <button
                 type="submit"
