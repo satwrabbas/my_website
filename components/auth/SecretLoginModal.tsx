@@ -11,7 +11,6 @@ export default function SecretLoginModal() {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
