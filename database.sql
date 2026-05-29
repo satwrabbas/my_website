@@ -82,14 +82,7 @@ CREATE TABLE public.articles (
 );
 CREATE TRIGGER update_articles_updated_at BEFORE UPDATE ON public.articles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TABLE public.messages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    message TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+
 
 -- ==============================================================================
 -- 5. تفعيل نظام الحماية الصارم (Row Level Security - RLS)
@@ -97,7 +90,7 @@ CREATE TABLE public.messages (
 ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.articles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
 
 -- 🛡️ سياسات جدول المدراء: لا أحد يستطيع رؤيته سوى المدراء أنفسهم
 CREATE POLICY "Admins can view admins list" ON public.admins FOR SELECT USING (public.is_admin());
@@ -120,10 +113,3 @@ CREATE POLICY "Only admins can insert articles" ON public.articles FOR INSERT WI
 CREATE POLICY "Only admins can update articles" ON public.articles FOR UPDATE USING (public.is_admin());
 CREATE POLICY "Only admins can delete articles" ON public.articles FOR DELETE USING (public.is_admin());
 
--- 🛡️ سياسات جدول الرسائل:
--- الزوار يمكنهم إرسال رسائل فقط (Insert)
-CREATE POLICY "Public can send messages" ON public.messages FOR INSERT WITH CHECK (true);
--- المدراء فقط يمكنهم قراءة وحذف الرسائل
-CREATE POLICY "Only admins can view messages" ON public.messages FOR SELECT USING (public.is_admin());
-CREATE POLICY "Only admins can update messages" ON public.messages FOR UPDATE USING (public.is_admin());
-CREATE POLICY "Only admins can delete messages" ON public.messages FOR DELETE USING (public.is_admin());
