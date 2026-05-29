@@ -1,4 +1,4 @@
-// app/page.tsx
+// app\page.tsx
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { ArrowUpLeft, Code2, Smartphone, Monitor, Download } from 'lucide-react'
