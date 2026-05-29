@@ -95,13 +95,13 @@ export default async function Home() {
                 className="group relative bg-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300 flex flex-col"
               >
                 {project.thumbnail_url && (
-                  <div className="w-full h-64 overflow-hidden border-b border-zinc-800/50 bg-zinc-950">
+                  <Link href={`/projects/${project.slug}`} className="block w-full h-64 overflow-hidden border-b border-zinc-800/50 bg-zinc-950 cursor-pointer">
                     <img 
                       src={project.thumbnail_url} 
                       alt={project.title} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                  </div>
+                  </Link>
                 )}
 
                 <div className="p-8 flex-1 flex flex-col">
@@ -110,7 +110,9 @@ export default async function Home() {
                     {project.platforms?.includes('Windows') || project.platforms?.includes('Web') ? <Monitor size={24} /> : null}
                   </div>
 
-                  <h3 className="text-2xl font-bold text-white mb-3">{project.title}</h3>
+                <Link href={`/projects/${project.slug}`} className="hover:text-emerald-400 transition-colors w-fit">
+                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors">{project.title}</h3>
+                </Link>
                   <p className="text-zinc-400 mb-8 leading-relaxed flex-1">
                     {project.tagline}
                   </p>
