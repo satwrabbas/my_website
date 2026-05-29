@@ -84,46 +84,60 @@ export default async function Home() {
             {projects?.map((project) => (
               <div 
                 key={project.id} 
-                className="group relative bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300"
+                className="group relative bg-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300 flex flex-col"
               >
-                <div className="absolute top-8 left-8 flex gap-2 text-zinc-600 group-hover:text-emerald-500 transition-colors">
-                  {project.platforms?.includes('Android') || project.platforms?.includes('iOS') ? <Smartphone size={24} /> : null}
-                  {project.platforms?.includes('Windows') || project.platforms?.includes('Web') ? <Monitor size={24} /> : null}
-                </div>
+                {/* 🌟 كود عرض صورة المشروع 🌟 */}
+                {project.thumbnail_url && (
+                  <div className="w-full h-64 overflow-hidden border-b border-zinc-800/50 bg-zinc-950">
+                    <img 
+                      src={project.thumbnail_url} 
+                      alt={project.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
 
-                <h3 className="text-2xl font-bold text-white mb-3">{project.title}</h3>
-                <p className="text-zinc-400 mb-8 leading-relaxed">
-                  {project.tagline}
-                </p>
+                {/* محتوى البطاقة */}
+                <div className="p-8 flex-1 flex flex-col">
+                  <div className="flex gap-2 text-zinc-600 mb-4 group-hover:text-emerald-500 transition-colors">
+                    {project.platforms?.includes('Android') || project.platforms?.includes('iOS') ? <Smartphone size={24} /> : null}
+                    {project.platforms?.includes('Windows') || project.platforms?.includes('Web') ? <Monitor size={24} /> : null}
+                  </div>
 
-                <div className="flex flex-wrap gap-2 mb-8">
-                  {project.tech_stack?.map((tech: string, i: number) => (
-                    <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-sm px-3 py-1 rounded-full">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">{project.title}</h3>
+                  <p className="text-zinc-400 mb-8 leading-relaxed flex-1">
+                    {project.tagline}
+                  </p>
 
-                <div className="flex items-center gap-4 pt-6 border-t border-zinc-800/50">
-                  {project.download_url && (
-                    <Link 
-                      href={project.download_url}
-                      target="_blank"
-                      className="text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-2 transition-colors"
-                    >
-                      <Download size={18} />
-                      تحميل التطبيق
-                    </Link>
-                  )}
-                  {project.github_url && (
-                    <Link 
-                      href={project.github_url}
-                      target="_blank"
-                      className="text-zinc-400 hover:text-white transition-colors"
-                    >
-                      <GithubIcon size={20} />
-                    </Link>
-                  )}
+                  <div className="flex flex-wrap gap-2 mb-8">
+                    {project.tech_stack?.map((tech: string, i: number) => (
+                      <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs px-3 py-1 rounded-full">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-6 border-t border-zinc-800/50 mt-auto">
+                    {project.download_url && (
+                      <Link 
+                        href={project.download_url}
+                        target="_blank"
+                        className="text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-2 transition-colors text-sm"
+                      >
+                        <Download size={18} />
+                        تحميل التطبيق
+                      </Link>
+                    )}
+                    {project.github_url && (
+                      <Link 
+                        href={project.github_url}
+                        target="_blank"
+                        className="text-zinc-400 hover:text-white transition-colors"
+                      >
+                        <GithubIcon size={20} />
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
