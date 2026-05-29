@@ -161,7 +161,7 @@ export default async function Home() {
             
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
               <Link 
-                href="mailto:abbas.satwr@example.com" 
+                href="mailto:satwrabbas@gmail.com" 
                 className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.2)]"
               >
                 <Mail size={22} />
@@ -178,7 +178,7 @@ export default async function Home() {
                   <LinkedinIcon size={22} />
                 </Link>
                 <Link 
-                  href="https://github.com/abbas-satwr" 
+                  href="https://github.com/satwrabbas" 
                   target="_blank"
                   className="bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white hover:border-emerald-500/50 p-4 rounded-xl transition-all"
                   aria-label="GitHub"
