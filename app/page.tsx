@@ -1,12 +1,20 @@
-// app\page.tsx
+// app/page.tsx
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
-import { ArrowUpLeft, Code2, Smartphone, Monitor, Download } from 'lucide-react'
+import { ArrowUpLeft, Code2, Smartphone, Monitor, Download, Mail } from 'lucide-react'
 
-// أيقونة GitHub مخصصة (لأن lucide-react حذفتها من مكتبتها مؤخراً)
+// أيقونات مخصصة للعلامات التجارية (تم إزالتها من lucide-react)
 const GithubIcon = ({ size = 20, className = "" }) => (
   <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.8 0-1.4-.5-2.8-1.5-3.8.1-.3.7-1.8-.1-3.8 0 0-1.2-.4-3.9 1.4a12.3 12.3 0 0 0-7 0C6.1 1.6 4.9 2 4.9 2c-.8 2-.2 3.5-.1 3.8-1 1-1.5 2.4-1.5 3.8 0 5.3 3 6.5 6 6.8-.4.3-.7.9-.8 2-.2.1-.5.2-1 .2-1.5 0-2.5-1.1-3-2 0 0-.5-.9-1.5-1.1 0 0-1-.1-.1.3.8.4 1.2 1.5 1.2 1.5.7 1.9 2.8 1.9 4 1.5v2" />
+  </svg>
+)
+
+const LinkedinIcon = ({ size = 20, className = "" }) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
   </svg>
 )
 
@@ -31,7 +39,7 @@ export default async function Home() {
         <nav className="flex gap-6 text-sm font-medium text-zinc-400">
           <Link href="#projects" className="hover:text-white transition-colors">الأعمال</Link>
           <Link href="#about" className="hover:text-white transition-colors">عني</Link>
-          <Link href="mailto:your-email@example.com" className="hover:text-emerald-400 transition-colors">تواصل معي</Link>
+          <Link href="#contact" className="hover:text-emerald-400 transition-colors">تواصل معي</Link>
         </nav>
       </header>
 
@@ -86,7 +94,6 @@ export default async function Home() {
                 key={project.id} 
                 className="group relative bg-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300 flex flex-col"
               >
-                {/* 🌟 كود عرض صورة المشروع 🌟 */}
                 {project.thumbnail_url && (
                   <div className="w-full h-64 overflow-hidden border-b border-zinc-800/50 bg-zinc-950">
                     <img 
@@ -97,7 +104,6 @@ export default async function Home() {
                   </div>
                 )}
 
-                {/* محتوى البطاقة */}
                 <div className="p-8 flex-1 flex flex-col">
                   <div className="flex gap-2 text-zinc-600 mb-4 group-hover:text-emerald-500 transition-colors">
                     {project.platforms?.includes('Android') || project.platforms?.includes('iOS') ? <Smartphone size={24} /> : null}
@@ -144,7 +150,47 @@ export default async function Home() {
           </div>
         </section>
 
-        <footer className="py-12 border-t border-zinc-900 mt-20 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-500 text-sm">
+        <section id="contact" className="py-24 border-t border-zinc-900 relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+          
+          <div className="relative bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 md:p-16 text-center max-w-4xl mx-auto flex flex-col items-center">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">هل لديك فكرة مشروع؟</h2>
+            <p className="text-zinc-400 text-lg mb-10 max-w-xl leading-relaxed">
+              أنا دائماً منفتح لمناقشة المشاريع الجديدة، وفرص العمل، أو حتى مجرد إلقاء التحية. دعنا نحول أفكارك إلى واقع برمجي ملموس.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <Link 
+                href="mailto:abbas.satwr@example.com" 
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+              >
+                <Mail size={22} />
+                أرسل لي بريداً
+              </Link>
+              
+              <div className="flex items-center justify-center gap-4 mt-4 sm:mt-0 w-full sm:w-auto">
+                <Link 
+                  href="https://linkedin.com/in/abbas-satwr" 
+                  target="_blank"
+                  className="bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white hover:border-emerald-500/50 p-4 rounded-xl transition-all"
+                  aria-label="LinkedIn"
+                >
+                  <LinkedinIcon size={22} />
+                </Link>
+                <Link 
+                  href="https://github.com/abbas-satwr" 
+                  target="_blank"
+                  className="bg-zinc-950 border border-zinc-800 text-zinc-300 hover:text-white hover:border-emerald-500/50 p-4 rounded-xl transition-all"
+                  aria-label="GitHub"
+                >
+                  <GithubIcon size={22} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="py-12 border-t border-zinc-900 mt-10 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-500 text-sm">
           <p>© {new Date().getFullYear()} عباس صاطور. جميع الحقوق محفوظة.</p>
           <p>صُنع بشغف وكوب من القهوة ☕</p>
         </footer>

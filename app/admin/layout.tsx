@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LayoutDashboard, FileText, Briefcase, MessageSquare, LogOut } from 'lucide-react'
+import { LayoutDashboard, FileText, Briefcase, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
-      {/* القائمة الجانبية (Sidebar) */}
+      {/* القائمة الجانبية */}
       <aside className="w-64 bg-zinc-900 border-l border-zinc-800 flex flex-col">
         <div className="p-6 border-b border-zinc-800">
           <h2 className="text-xl font-bold text-emerald-500">لوحة القيادة</h2>
@@ -37,10 +37,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <FileText size={20} />
             <span>المقالات</span>
           </Link>
-          <Link href="/admin/messages" className="flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors">
-            <MessageSquare size={20} />
-            <span>الرسائل</span>
-          </Link>
         </nav>
 
         <div className="p-4 border-t border-zinc-800">
@@ -54,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* منطقة عرض المحتوى */}
+      {/* منطقة المحتوى */}
       <main className="flex-1 p-8 overflow-y-auto">
         {children}
       </main>
