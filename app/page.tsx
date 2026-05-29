@@ -1,9 +1,141 @@
-export default function Home() {
+// app/page.tsx
+import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
+import { ArrowUpLeft, Code2, Smartphone, Monitor, Download } from 'lucide-react'
+
+// أيقونة GitHub مخصصة (لأن lucide-react حذفتها من مكتبتها مؤخراً)
+const GithubIcon = ({ size = 20, className = "" }) => (
+  <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.8 0-1.4-.5-2.8-1.5-3.8.1-.3.7-1.8-.1-3.8 0 0-1.2-.4-3.9 1.4a12.3 12.3 0 0 0-7 0C6.1 1.6 4.9 2 4.9 2c-.8 2-.2 3.5-.1 3.8-1 1-1.5 2.4-1.5 3.8 0 5.3 3 6.5 6 6.8-.4.3-.7.9-.8 2-.2.1-.5.2-1 .2-1.5 0-2.5-1.1-3-2 0 0-.5-.9-1.5-1.1 0 0-1-.1-.1.3.8.4 1.2 1.5 1.2 1.5.7 1.9 2.8 1.9 4 1.5v2" />
+  </svg>
+)
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+export default async function Home() {
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at', { ascending: false })
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <h1 className="text-4xl font-bold text-emerald-500">أهلاً بك في موقع عباس صاطور</h1>
-      <p className="mt-4 text-zinc-400">جاري بناء المعرض الشخصي...</p>
-      <p className="mt-8 text-sm text-zinc-600">اضغط (Ctrl + Shift + L) لتسجيل الدخول السري</p>
-    </main>
-  );
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/30">
+      
+      <header className="max-w-5xl mx-auto px-6 py-8 flex justify-between items-center">
+        <div className="font-bold text-xl tracking-tighter">
+          Abbas<span className="text-emerald-500">.</span>
+        </div>
+        <nav className="flex gap-6 text-sm font-medium text-zinc-400">
+          <Link href="#projects" className="hover:text-white transition-colors">الأعمال</Link>
+          <Link href="#about" className="hover:text-white transition-colors">عني</Link>
+          <Link href="mailto:your-email@example.com" className="hover:text-emerald-400 transition-colors">تواصل معي</Link>
+        </nav>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-6">
+        
+        <section className="py-24 md:py-32 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium mb-6 border border-emerald-500/20">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            متاح للمشاريع الجديدة
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            أهلاً، أنا عباس صاطور. <br />
+            <span className="text-zinc-500">مطور برمجيات يصنع الفارق.</span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-zinc-400 mb-10 leading-relaxed max-w-2xl">
+            أصمم وأبرمج تطبيقات جوال وحاسوب متكاملة من الصفر. أركز على كتابة كود نظيف وتصميم واجهات عصرية تجعل استخدام التطبيق تجربة ممتعة وفعّالة.
+          </p>
+          
+          <div className="flex flex-wrap gap-4">
+            <Link 
+              href="#projects"
+              className="bg-white text-zinc-950 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-200 transition-colors"
+            >
+              استكشف أعمالي
+              <ArrowUpLeft size={20} />
+            </Link>
+            <Link 
+              href="https://github.com/abbas-satwr" 
+              target="_blank"
+              className="bg-zinc-900 border border-zinc-800 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-zinc-800 transition-colors"
+            >
+              <GithubIcon size={20} />
+              GitHub
+            </Link>
+          </div>
+        </section>
+
+        <section id="projects" className="py-20 border-t border-zinc-900">
+          <div className="flex items-center gap-4 mb-12">
+            <Code2 className="text-emerald-500" size={32} />
+            <h2 className="text-3xl font-bold">تطبيقات ومشاريع بارزة</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {projects?.map((project) => (
+              <div 
+                key={project.id} 
+                className="group relative bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300"
+              >
+                <div className="absolute top-8 left-8 flex gap-2 text-zinc-600 group-hover:text-emerald-500 transition-colors">
+                  {project.platforms?.includes('Android') || project.platforms?.includes('iOS') ? <Smartphone size={24} /> : null}
+                  {project.platforms?.includes('Windows') || project.platforms?.includes('Web') ? <Monitor size={24} /> : null}
+                </div>
+
+                <h3 className="text-2xl font-bold text-white mb-3">{project.title}</h3>
+                <p className="text-zinc-400 mb-8 leading-relaxed">
+                  {project.tagline}
+                </p>
+
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {project.tech_stack?.map((tech: string, i: number) => (
+                    <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-sm px-3 py-1 rounded-full">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-4 pt-6 border-t border-zinc-800/50">
+                  {project.download_url && (
+                    <Link 
+                      href={project.download_url}
+                      target="_blank"
+                      className="text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-2 transition-colors"
+                    >
+                      <Download size={18} />
+                      تحميل التطبيق
+                    </Link>
+                  )}
+                  {project.github_url && (
+                    <Link 
+                      href={project.github_url}
+                      target="_blank"
+                      className="text-zinc-400 hover:text-white transition-colors"
+                    >
+                      <GithubIcon size={20} />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="py-12 border-t border-zinc-900 mt-20 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-500 text-sm">
+          <p>© {new Date().getFullYear()} عباس صاطور. جميع الحقوق محفوظة.</p>
+          <p>صُنع بشغف وكوب من القهوة ☕</p>
+        </footer>
+
+      </main>
+    </div>
+  )
 }
