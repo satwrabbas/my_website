@@ -19,7 +19,8 @@ export default function SecretLoginModal() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+      // استخدمنا e.code بدلاً من e.key حتى يعمل الاختصار سواء كانت الكيبورد عربي أو إنجليزي
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.code === 'KeyL') {
         e.preventDefault()
         setIsOpen((prev) => !prev)
       }
