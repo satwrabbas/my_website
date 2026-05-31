@@ -125,26 +125,14 @@ export default async function Home() {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-4 pt-6 border-t border-zinc-800/50 mt-auto">
-                    {project.download_url && (
-                      <Link 
-                        href={project.download_url}
-                        target="_blank"
-                        className="text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-2 transition-colors text-sm"
-                      >
-                        <Download size={18} />
-                        تحميل التطبيق
-                      </Link>
-                    )}
-                    {project.github_url && (
-                      <Link 
-                        href={project.github_url}
-                        target="_blank"
-                        className="text-zinc-400 hover:text-white transition-colors"
-                      >
-                        <GithubIcon size={20} />
-                      </Link>
-                    )}
+                  <div className="pt-6 border-t border-zinc-800/50 mt-auto">
+                    <Link 
+                      href={`/projects/${project.slug}`}
+                      className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                    >
+                      استكشف تفاصيل المشروع
+                      <ArrowUpLeft size={18} />
+                    </Link>
                   </div>
                 </div>
               </div>
