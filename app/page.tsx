@@ -203,13 +203,16 @@ export default async function Home() {
               تليجرام
             </Link>
 
-            <Link 
-              href="mailto:satwrabbas@gmail.com" 
+            {/* زر الإيميل يفتح Gmail مباشرة في المتصفح */}
+            <a 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=satwrabbas@gmail.com" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 transition-colors"
             >
               <Mail size={24} />
               البريد الإلكتروني
-            </Link>
+            </a>
           </div>
         </section>
 
