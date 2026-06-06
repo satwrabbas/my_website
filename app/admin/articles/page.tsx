@@ -74,16 +74,27 @@ export default function ArticlesAdminPage() {
               
               <p className="text-zinc-400 text-sm mb-6 line-clamp-3">{article.excerpt}</p>
 
-              <div className="flex justify-end gap-3 mt-auto pt-4 border-t border-zinc-800">
+              <div className="flex justify-end items-center gap-3 mt-auto pt-4 border-t border-zinc-800">
                 <button 
                   onClick={() => togglePublish(article.id, article.is_published)}
-                  className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-zinc-800 transition-colors text-sm font-medium"
+                  className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-zinc-800 transition-colors text-sm font-medium ml-auto"
                 >
                   {article.is_published ? 'إلغاء النشر' : 'نشر الآن'}
                 </button>
+                
+                {/* 👈 زر التعديل الجديد */}
+                <Link 
+                  href={`/admin/articles/${article.id}/edit`}
+                  className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-blue-400/10 transition-colors"
+                  title="تعديل المقال"
+                >
+                  <Edit size={18} />
+                </Link>
+
                 <button 
                   onClick={() => handleDelete(article.id)}
                   className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-400/10 transition-colors"
+                  title="حذف المقال"
                 >
                   <Trash2 size={18} />
                 </button>
