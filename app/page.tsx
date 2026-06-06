@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { ArrowUpLeft, Code2, Smartphone, Monitor, Download, Mail, User } from 'lucide-react'
-
+import ProjectCard from '@/components/ProjectCard'
 // --- الأيقونات المخصصة ---
 const GithubIcon = ({ size = 20, className = "" }) => (
   <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.8 0-1.4-.5-2.8-1.5-3.8.1-.3.7-1.8-.1-3.8 0 0-1.2-.4-3.9 1.4a12.3 12.3 0 0 0-7 0C6.1 1.6 4.9 2 4.9 2c-.8 2-.2 3.5-.1 3.8-1 1-1.5 2.4-1.5 3.8 0 5.3 3 6.5 6 6.8-.4.3-.7.9-.8 2-.2.1-.5.2-1 .2-1.5 0-2.5-1.1-3-2 0 0-.5-.9-1.5-1.1 0 0-1-.1-.1.3.8.4 1.2 1.5 1.2 1.5.7 1.9 2.8 1.9 4 1.5v2" /></svg>
@@ -94,52 +94,10 @@ export default async function Home() {
             <h2 className="text-3xl font-bold">تطبيقات ومشاريع بارزة</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* البينتو جريد المذهلة */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-flow-row-dense">
             {projects?.map((project) => (
-              <div 
-                key={project.id} 
-                className="group relative bg-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-300 flex flex-col"
-              >
-                {project.thumbnail_url && (
-                  <div className="w-full h-64 overflow-hidden border-b border-zinc-800/50 bg-zinc-950">
-                    <img 
-                      src={project.thumbnail_url} 
-                      alt={project.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                )}
-
-                <div className="p-8 flex-1 flex flex-col">
-                  <div className="flex gap-2 text-zinc-600 mb-4 group-hover:text-emerald-500 transition-colors">
-                    {project.platforms?.includes('Android') || project.platforms?.includes('iOS') ? <Smartphone size={24} /> : null}
-                    {project.platforms?.includes('Windows') || project.platforms?.includes('Web') ? <Monitor size={24} /> : null}
-                  </div>
-
-                  <h3 className="text-2xl font-bold text-white mb-3">{project.title}</h3>
-                  <p className="text-zinc-400 mb-8 leading-relaxed flex-1">
-                    {project.tagline}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 mb-8">
-                    {project.tech_stack?.map((tech: string, i: number) => (
-                      <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs px-3 py-1 rounded-full">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="pt-6 border-t border-zinc-800/50 mt-auto">
-                    <Link 
-                      href={`/projects/${project.slug}`}
-                      className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
-                    >
-                      استكشف تفاصيل المشروع
-                      <ArrowUpLeft size={18} />
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         </section>
