@@ -271,7 +271,8 @@ export default function NewProjectPage() {
             <button 
               type="button" 
               onClick={addFeature}
-              className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border border-zinc-700 font-medium"
+              disabled={isSubmitting} // 👈 إضافة هذا
+              className={`bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border border-zinc-700 font-medium ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <Plus size={18} /> إضافة نقطة
             </button>
@@ -290,7 +291,8 @@ export default function NewProjectPage() {
                   <button 
                     type="button" 
                     onClick={() => removeFeature(index)}
-                    className="absolute -top-3 -left-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                    disabled={isSubmitting} // 👈 إضافة هذا
+                    className={`absolute -top-3 -left-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg ${isSubmitting ? 'hidden' : ''}`}
                     title="حذف هذه النقطة"
                   >
                     <Trash2 size={16} />
