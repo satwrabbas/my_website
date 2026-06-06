@@ -38,6 +38,7 @@ export default async function Home() {
         </div>
         <nav className="flex gap-6 text-sm font-medium text-zinc-400">
           <Link href="#projects" className="hover:text-white transition-colors">الأعمال</Link>
+          <Link href="/writing" className="hover:text-white transition-colors">المدونة</Link> 
           <Link href="#about" className="hover:text-white transition-colors">عني</Link>
           <Link href="#contact" className="hover:text-emerald-400 transition-colors">تواصل معي</Link>
         </nav>
