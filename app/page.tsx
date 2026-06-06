@@ -87,18 +87,29 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* --- قسم المشاريع --- */}
-        <section id="projects" className="py-20 border-t border-zinc-900">
-          <div className="flex items-center gap-4 mb-12">
+        {/* --- قسم المشاريع (الدمج السحري: الحافة للحافة + تمرير أفقي) --- */}
+        <section id="projects" className="py-20 border-t border-zinc-900 w-full overflow-hidden relative">
+          
+          {/* عنوان القسم (يبقى داخل الحدود للحفاظ على التنسيق) */}
+          <div className="max-w-5xl mx-auto px-6 mb-12 flex items-center gap-4">
             <Code2 className="text-emerald-500" size={32} />
             <h2 className="text-3xl font-bold">تطبيقات ومشاريع بارزة</h2>
           </div>
 
-          {/* البينتو جريد المذهلة */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-flow-row-dense">
-            {projects?.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
+          {/* 
+            حاوية التمرير الأفقي من الحافة للحافة (Edge-to-Edge)
+            قمنا بإعطائها w-screen لكسر حدود الصفحة الأساسية
+            واستخدمنا snap-x لجعل التمرير يتمركز على البطاقات
+          */}
+          <div className="w-screen relative left-1/2 -translate-x-1/2">
+            <div className="flex overflow-x-auto gap-6 px-6 md:px-[calc((100vw-64rem)/2)] pb-12 pt-4 snap-x snap-mandatory hide-scrollbar">
+              {projects?.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+              
+              {/* مساحة فارغة وهمية في النهاية لضمان التمرير المريح للبطاقة الأخيرة */}
+              <div className="shrink-0 w-6 md:w-24"></div>
+            </div>
           </div>
         </section>
 
