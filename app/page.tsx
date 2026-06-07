@@ -84,6 +84,23 @@ export default async function Home() {
         {/* --- 🌊 قسم المشاريع (الموجة اللانهائية 3D) 🌊 --- */}
         <section id="projects" className="py-24 border-t border-zinc-900 w-full overflow-hidden bg-zinc-950 relative">
           
+          {/* 🟢 ضخ كود الحركة مباشرة لضمان عملها 100% 🟢 */}
+          <style dangerouslySetInnerHTML={{
+            __html: `
+              @keyframes marquee-rtl {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(50%); }
+              }
+              .animate-marquee-rtl {
+                width: max-content;
+                animation: marquee-rtl 40s linear infinite;
+              }
+              .animate-marquee-rtl:hover {
+                animation-play-state: paused;
+              }
+            `
+          }} />
+
           <div className="max-w-5xl mx-auto px-6 mb-16 flex items-center gap-4 relative z-20">
             <Code2 className="text-emerald-500" size={32} />
             <h2 className="text-3xl font-bold">معرض الأعمال التفاعلي</h2>
@@ -96,10 +113,9 @@ export default async function Home() {
             <div className="absolute top-0 bottom-0 right-0 w-16 md:w-48 bg-gradient-to-l from-zinc-950 to-transparent z-20 pointer-events-none"></div>
             <div className="absolute top-0 bottom-0 left-0 w-16 md:w-48 bg-gradient-to-r from-zinc-950 to-transparent z-20 pointer-events-none"></div>
 
-            {/* المسار المتحرك (Marquee Track) */}
-            <div className="flex gap-8 px-8 animate-marquee-rtl h-full items-stretch relative z-10 py-10">
+            {/* المسار المتحرك (أضفنا w-max لضمان تمدد الحاوية) */}
+            <div className="flex gap-8 px-8 w-max animate-marquee-rtl h-full items-stretch relative z-10 py-10">
               {marqueeProjects?.map((project, index) => (
-                // تم تمرير project و index لمكون الـ 3D
                 <ProjectCard3D key={`${project.id}-${index}`} project={project} index={index} />
               ))}
             </div>
