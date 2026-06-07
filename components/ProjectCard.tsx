@@ -8,19 +8,24 @@ import { Smartphone, Monitor, ArrowUpLeft } from 'lucide-react'
 export default function ProjectCard({ project }: { project: any }) {
   const [isHovered, setIsHovered] = useState(false)
 
+  // 1. قراءة المنصات
   const isMobile = project.platforms?.includes('Android') || project.platforms?.includes('iOS')
   const isDesktop = project.platforms?.includes('Windows') || project.platforms?.includes('Web')
-  const isMobileOnly = isMobile && !isDesktop
 
-  // 🍱 منطق البينتو جريد (مع تحديد حد أدنى للارتفاع لكي تأخذ الصورة مساحة ممتازة)
-  let bentoClasses = 'col-span-1 row-span-1 min-h-[350px]'
+  // 2. توزيع المساحات بشكل دقيق (Bento Logic)
+  let bentoClasses = 'col-span-1 row-span-1 min-h-[350px]' // الحجم القياسي (إذا لم يتم تحديد منصة)
   
-  if (isDesktop && !isMobileOnly) {
-    bentoClasses = 'md:col-span-2 md:row-span-1 min-h-[350px] md:min-h-[400px]'
-  } else if (isMobileOnly) {
-    bentoClasses = 'md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-[600px]'
-  } else if (isDesktop && isMobile) {
+  if (isDesktop && isMobile) {
+    // 👑 عملاق (تطبيق مشترك: جوال + ديسكتوب)
     bentoClasses = 'md:col-span-2 md:row-span-2 min-h-[400px] md:min-h-[600px]'
+  } 
+  else if (isDesktop && !isMobile) {
+    // 💻 عريض بانورامي (ديسكتوب أو ويب فقط)
+    bentoClasses = 'md:col-span-2 md:row-span-1 min-h-[350px] md:min-h-[400px]'
+  } 
+  else if (isMobile && !isDesktop) {
+    // 📱 طويل عمودي (جوال فقط)
+    bentoClasses = 'md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-[600px]'
   }
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
