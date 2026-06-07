@@ -50,25 +50,30 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
   const platforms = project.platforms || []
   const isMobile = platforms.includes('Android') || platforms.includes('iOS') || platforms.includes('iPhone')
   const isDesktop = platforms.includes('Windows') || platforms.includes('Web')
-  const isMobileOnly = isMobile && !isDesktop
 
-  // هنا نحدد العرض والمحاذاة العمودية (Alignment) لخلق الفراغات المتموجة!
-  let cardWidth = 'w-[300px] md:w-[350px]' // الافتراضي
-  let alignment = 'self-center' // المحاذاة الافتراضية
+  // القيم الافتراضية
+  let cardWidth = 'w-[300px] md:w-[350px]' 
+  let alignment = 'self-center' 
   let mediaHeight = 'min-h-[450px]'
 
-  if (isDesktop && !isMobileOnly) {
-    cardWidth = 'w-[85vw] md:w-[600px]' // عريض
-    alignment = 'self-start' // يلتصق بالأعلى ⬆️
+  if (isDesktop && isMobile) {
+    // 👑 الحجم العملاق (تطبيق مشترك جوال + ديسكتوب)
+    // يأخذ عرضاً كبيراً جداً 700px وارتفاعاً يملأ الشريط 550px
+    cardWidth = 'w-[85vw] md:w-[700px]' 
+    alignment = 'self-center' // يتوسط الشاشة بفخامة
+    mediaHeight = 'min-h-[550px]'
+  } 
+  else if (isDesktop && !isMobile) {
+    // 💻 الحجم البانورامي (ديسكتوب / ويب فقط)
+    cardWidth = 'w-[85vw] md:w-[550px]' 
+    alignment = 'self-start' // يطفو في الأعلى ⬆️
     mediaHeight = 'min-h-[350px]'
-  } else if (isMobileOnly) {
-    cardWidth = 'w-[300px] md:w-[380px]' // نحيف
-    alignment = 'self-end' // يلتصق بالأسفل ⬇️
-    mediaHeight = 'min-h-[500px]'
-  } else if (isDesktop && isMobile) {
-    cardWidth = 'w-[85vw] md:w-[500px]' // متوسط
-    alignment = 'self-center' // يتوسط الشاشة 🎯
-    mediaHeight = 'min-h-[450px]'
+  } 
+  else if (isMobile && !isDesktop) {
+    // 📱 الحجم العمودي (جوال فقط)
+    cardWidth = 'w-[300px] md:w-[380px]' 
+    alignment = 'self-end' // يستقر في الأسفل ⬇️
+    mediaHeight = 'min-h-[480px]'
   }
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
