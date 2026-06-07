@@ -1,103 +1,155 @@
-// components/ProjectCard.tsx
+// components/ProjectCard3D.tsx
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { Smartphone, Monitor, Globe, Apple, ArrowUpLeft } from 'lucide-react'
 
-export default function ProjectCard({ project }: { project: any }) {
+export default function ProjectCard3D({ project, index }: { project: any, index: number }) {
   const [isHovered, setIsHovered] = useState(false)
 
-  // 1. قراءة المنصات بدقة لكل نوع
+  // --------------------------------------------------------
+  // 1. فيزياء الأبعاد الثلاثية (3D Physics Setup)
+  // --------------------------------------------------------
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+
+  // جعل الحركة ناعمة وارتدادية (Spring) لتجنب التقطيع
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 })
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 })
+
+  // تحويل حركة الماوس إلى زوايا دوران (من -10 درجات إلى 10 درجات)
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"])
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"])
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    // حساب موقع الفأرة بالنسبة لمركز البطاقة
+    const width = rect.width
+    const height = rect.height
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const xPct = mouseX / width - 0.5
+    const yPct = mouseY / height - 0.5
+    
+    x.set(xPct)
+    y.set(yPct)
+  }
+
+  const handleMouseLeave = () => {
+    // تصفير القيم لتعود البطاقة مسطحة عند خروج الفأرة
+    x.set(0)
+    y.set(0)
+    setIsHovered(false)
+  }
+
+  // --------------------------------------------------------
+  // 2. تحليل المنصات (الأحجام والمحاذاة للموجة غير المتماثلة)
+  // --------------------------------------------------------
   const platforms = project.platforms || []
-  const hasAndroid = platforms.includes('Android')
-  const hasIOS = platforms.includes('iOS') || platforms.includes('iPhone')
-  const hasWindows = platforms.includes('Windows')
-  const hasWeb = platforms.includes('Web')
+  const isMobile = platforms.includes('Android') || platforms.includes('iOS') || platforms.includes('iPhone')
+  const isDesktop = platforms.includes('Windows') || platforms.includes('Web')
+  const isMobileOnly = isMobile && !isDesktop
 
-  const isMobile = hasAndroid || hasIOS
-  const isDesktop = hasWindows || hasWeb
+  // هنا نحدد العرض والمحاذاة العمودية (Alignment) لخلق الفراغات المتموجة!
+  let cardWidth = 'w-[300px] md:w-[350px]' // الافتراضي
+  let alignment = 'self-center' // المحاذاة الافتراضية
+  let mediaHeight = 'min-h-[450px]'
 
-  // 2. توزيع المساحات بشكل دقيق ومدمج (Compact Bento Logic)
-  let bentoClasses = 'col-span-1 row-span-1 min-h-[250px]' // تم تصغير الحجم القياسي
-  
-  if (isDesktop && isMobile) {
-    bentoClasses = 'md:col-span-2 md:row-span-2 min-h-[300px] md:min-h-[450px]' // العملاق أصبح ألطف
-  } else if (isDesktop && !isMobile) {
-    bentoClasses = 'md:col-span-2 md:row-span-1 min-h-[250px] md:min-h-[300px]' // العريض أصبح أكثر إحكاماً
-  } else if (isMobile && !isDesktop) {
-    bentoClasses = 'md:col-span-1 md:row-span-2 min-h-[300px] md:min-h-[450px]' // الطولي أصبح متناسقاً
+  if (isDesktop && !isMobileOnly) {
+    cardWidth = 'w-[85vw] md:w-[600px]' // عريض
+    alignment = 'self-start' // يلتصق بالأعلى ⬆️
+    mediaHeight = 'min-h-[350px]'
+  } else if (isMobileOnly) {
+    cardWidth = 'w-[300px] md:w-[380px]' // نحيف
+    alignment = 'self-end' // يلتصق بالأسفل ⬇️
+    mediaHeight = 'min-h-[500px]'
+  } else if (isDesktop && isMobile) {
+    cardWidth = 'w-[85vw] md:w-[500px]' // متوسط
+    alignment = 'self-center' // يتوسط الشاشة 🎯
+    mediaHeight = 'min-h-[450px]'
   }
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
   return (
-    <div 
-      // تم تغيير الحواف إلى rounded-3xl لتبدو أكثر احترافية وأقل انتفاخاً
-      className={`group relative rounded-3xl overflow-hidden border border-zinc-800 hover:border-emerald-500/50 transition-all duration-500 flex flex-col ${bentoClasses}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* خلفية البطاقة */}
-      <div className="absolute inset-0 w-full h-full bg-zinc-950">
-        {project.thumbnail_url && (
-          <img 
-            src={project.thumbnail_url} 
-            alt={project.title} 
-            className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-700 ${
-              isHovered && project.demo_url ? 'opacity-0 scale-100' : 'opacity-100 scale-105'
-            }`}
-          />
-        )}
+    // الحاوية الأم تعطى خاصية (perspective) لكي تعمل الأبعاد الثلاثية
+    <div className={`${cardWidth} shrink-0 snap-center ${alignment} relative group`} style={{ perspective: "1500px" }}>
+      
+      <motion.div
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d", // إخبار المتصفح بأن العناصر الداخلية ستبرز للأمام
+        }}
+        className={`relative ${mediaHeight} w-full rounded-[2.5rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-2xl transition-colors duration-500 cursor-pointer`}
+      >
+        
+        {/* --- طبقة الفيديو والصورة الخلفية (Z = 0) --- */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none rounded-[2.5rem] overflow-hidden">
+          {project.thumbnail_url && (
+            <img 
+              src={project.thumbnail_url} 
+              alt={project.title} 
+              className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-700 ${
+                isHovered && project.demo_url ? 'opacity-0 scale-100' : 'opacity-100 scale-105'
+              }`}
+            />
+          )}
 
-        {project.demo_url && isHovered && (
-          <div className="absolute inset-0 w-full h-full animate-in fade-in duration-700">
-            {isVideoDemo ? (
-              <video src={project.demo_url} autoPlay loop muted playsInline className="w-full h-full object-cover object-top" />
-            ) : (
-              <img src={project.demo_url} alt="Demo" className="w-full h-full object-cover object-top" />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* التدرج اللوني للقراءة */}
-      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-80 pointer-events-none"></div>
-
-      {/* المحتوى النصي والأيقونات الخضراء (تم تقليل الـ Padding إلى p-5 md:p-6) */}
-      <div className="relative h-full flex flex-col justify-end p-5 md:p-6 z-10">
-        <div className="flex justify-between items-end gap-3">
-          
-          <div className="flex-1">
-            {/* 🟢 الأيقونات الذكية تم تصغيرها إلى size 16 🟢 */}
-            <div className="flex gap-1.5 text-emerald-400 mb-1.5 drop-shadow-md">
-              {hasAndroid && <Smartphone size={16} title="Android" />}
-              {hasIOS && <Apple size={16} title="iOS" />}
-              {hasWindows && <Monitor size={16} title="Windows" />}
-              {hasWeb && <Globe size={16} title="Web" />}
+          {project.demo_url && isHovered && (
+            <div className="absolute inset-0 w-full h-full animate-in fade-in duration-700">
+              {isVideoDemo ? (
+                <video src={project.demo_url} autoPlay loop muted playsInline className="w-full h-full object-cover object-top" />
+              ) : (
+                <img src={project.demo_url} alt="Demo" className="w-full h-full object-cover object-top" />
+              )}
             </div>
-            
-            {/* العنوان تم تصغيره ليتناسب مع البطاقة المدمجة */}
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-1.5 leading-tight drop-shadow-lg">
-              {project.title}
-            </h3>
-            {/* الوصف أصبح أصغر قليلاً */}
-            <p className="text-zinc-300/90 text-xs md:text-sm line-clamp-1 drop-shadow-md">
-              {project.tagline}
-            </p>
-          </div>
-
-          {/* زر استكشف تم تصغير حوافه وحجم الخط والأيقونة فيه */}
-          <Link 
-            href={`/projects/${project.slug}`}
-            className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2.5 md:px-4 md:py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:scale-105 group-hover:border-emerald-500/50"
-          >
-            <span className="hidden md:inline font-medium text-xs">استكشف</span>
-            <ArrowUpLeft size={16} className="group-hover:text-emerald-400 transition-colors" />
-          </Link>
-
+          )}
         </div>
-      </div>
+
+        {/* --- تدرج لوني للقراءة --- */}
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none rounded-[2.5rem]"></div>
+
+        {/* --- طبقة النصوص والأيقونات البارزة (Parallax: translateZ) --- */}
+        <div 
+          style={{ transform: "translateZ(60px)" }} // السر السحري لبروز النص!
+          className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end z-10 pointer-events-none"
+        >
+          <div className="flex justify-between items-end gap-4 pointer-events-auto">
+            
+            <div className="flex-1">
+              <div className="flex gap-1.5 text-emerald-400 mb-2 drop-shadow-md">
+                {platforms.includes('Android') && <Smartphone size={18} />}
+                {(platforms.includes('iOS') || platforms.includes('iPhone')) && <Apple size={18} />}
+                {platforms.includes('Windows') && <Monitor size={18} />}
+                {platforms.includes('Web') && <Globe size={18} />}
+              </div>
+              
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-1.5 leading-tight drop-shadow-xl">
+                {project.title}
+              </h3>
+              <p className="text-zinc-300 text-sm md:text-base line-clamp-1 drop-shadow-md">
+                {project.tagline}
+              </p>
+            </div>
+
+            <Link 
+              href={`/projects/${project.slug}`}
+              style={{ transform: "translateZ(30px)" }} // بروز إضافي للزر!
+              className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-3 md:px-5 md:py-3 rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 hover:border-emerald-500/50 shadow-2xl"
+            >
+              <span className="hidden md:inline font-medium text-sm">استكشف</span>
+              <ArrowUpLeft size={18} className="text-emerald-400" />
+            </Link>
+
+          </div>
+        </div>
+      </motion.div>
     </div>
   )
 }
