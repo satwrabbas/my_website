@@ -1,7 +1,7 @@
 // app/projects/[slug]/page.tsx
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Smartphone, Monitor, Download, ExternalLink } from 'lucide-react'
+import { ArrowRight, Smartphone, Monitor, Download, ExternalLink, Images, PlayCircle, Globe, Apple } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -54,8 +54,10 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
         {/* --- الترويسة الرئيسية للمشروع --- */}
         <div className="mb-20 text-center md:text-right">
           <div className="flex justify-center md:justify-start gap-3 text-emerald-500 mb-6">
-            {project.platforms?.includes('Android') || project.platforms?.includes('iOS') ? <Smartphone size={28} /> : null}
-            {project.platforms?.includes('Windows') || project.platforms?.includes('Web') ? <Monitor size={28} /> : null}
+            {project.platforms?.includes('Android') && <Smartphone size={28} title="Android" />}
+            {(project.platforms?.includes('iOS') || project.platforms?.includes('iPhone')) && <Apple size={28} title="iOS" />}
+            {project.platforms?.includes('Windows') && <Monitor size={28} title="Windows" />}
+            {project.platforms?.includes('Web') && <Globe size={28} title="Web" />}
           </div>
           
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
