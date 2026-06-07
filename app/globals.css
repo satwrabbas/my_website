@@ -35,3 +35,20 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* --- تأثير شريط التمرير اللانهائي (Infinite Marquee) --- */
+@keyframes marquee-rtl {
+  0% { transform: translateX(0); }
+  /* في المواقع العربية RTL، الحركة لليمين تكشف العناصر التي في اليسار */
+  100% { transform: translateX(50%); } 
+}
+
+.animate-marquee-rtl {
+  width: max-content; /* ضروري لكي لا ينضغط المحتوى */
+  animation: marquee-rtl 40s linear infinite; /* 40 ثانية لدورة كاملة (يمكنك تسريعها أو إبطائها) */
+}
+
+/* 🛑 السر السحري: إيقاف الشريط تماماً عند لمس أي بطاقة 🛑 */
+.animate-marquee-rtl:hover {
+  animation-play-state: paused;
+}
