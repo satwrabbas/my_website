@@ -12,44 +12,38 @@ export default function ProjectCard({ project }: { project: any }) {
   const isDesktop = project.platforms?.includes('Windows') || project.platforms?.includes('Web')
   const isMobileOnly = isMobile && !isDesktop
 
-  // 🍱 منطق البينتو جريد (Bento Grid Logic)
-  let bentoClasses = 'col-span-1 row-span-1'
+  // 🍱 منطق البينتو جريد (مع تحديد حد أدنى للارتفاع لكي تأخذ الصورة مساحة ممتازة)
+  let bentoClasses = 'col-span-1 row-span-1 min-h-[350px]'
   
   if (isDesktop && !isMobileOnly) {
-    // تطبيقات الويب والحاسوب: عريضة (تأخذ عمودين بالعرض)
-    bentoClasses = 'md:col-span-2 md:row-span-1'
+    bentoClasses = 'md:col-span-2 md:row-span-1 min-h-[350px] md:min-h-[400px]'
   } else if (isMobileOnly) {
-    // تطبيقات الجوال: طولية (تأخذ صفين بالطول)
-    bentoClasses = 'md:col-span-1 md:row-span-2'
+    bentoClasses = 'md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-[600px]'
   } else if (isDesktop && isMobile) {
-    // تطبيقات ضخمة تدعم كل شيء: تأخذ مساحة عملاقة (عمودين وصفين)
-    bentoClasses = 'md:col-span-2 md:row-span-2'
+    bentoClasses = 'md:col-span-2 md:row-span-2 min-h-[400px] md:min-h-[600px]'
   }
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
   return (
     <div 
-      className={`group relative bg-zinc-900/50 border border-zinc-800 rounded-[2rem] overflow-hidden hover:bg-zinc-900 hover:border-emerald-500/30 transition-all duration-500 flex flex-col h-full ${bentoClasses}`}
+      className={`group relative rounded-[2rem] overflow-hidden border border-zinc-800 hover:border-emerald-500/50 transition-all duration-500 flex flex-col ${bentoClasses}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* 
-        منطقة الوسائط: أعطيناها flex-1 لكي تتمدد أو تنكمش تلقائياً
-        لتعبئة الفراغ الذي يفرضه البينتو (سواء كان طويلاً أو عريضاً)
-      */}
-      <div className={`relative w-full flex-1 min-h-[250px] overflow-hidden border-b border-zinc-800/50 bg-zinc-950`}>
+      {/* --- 1. خلفية البطاقة (الصورة والفيديو يملآن المكان بالكامل) --- */}
+      <div className="absolute inset-0 w-full h-full bg-zinc-950">
         {project.thumbnail_url && (
           <img 
             src={project.thumbnail_url} 
             alt={project.title} 
-            className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-700 ${
-              isHovered && project.demo_url ? 'opacity-0' : 'opacity-100'
+            className={`absolute inset-0 w-full h-full object-cover object-top transition-all duration-700 ${
+              isHovered && project.demo_url ? 'opacity-0 scale-100' : 'opacity-100 scale-105'
             }`}
           />
         )}
 
-        {/* الفيديو يعمل تلقائياً عند التمرير */}
+        {/* الفيديو يظهر فوق الصورة عند التمرير */}
         {project.demo_url && isHovered && (
           <div className="absolute inset-0 w-full h-full animate-in fade-in duration-700">
             {isVideoDemo ? (
@@ -61,30 +55,38 @@ export default function ProjectCard({ project }: { project: any }) {
         )}
       </div>
 
-      {/* منطقة النصوص والأزرار (حجمها ثابت shrink-0) */}
-      <div className="p-8 shrink-0 flex flex-col bg-zinc-900/80">
-        <div className="flex gap-2 text-zinc-600 mb-4 group-hover:text-emerald-500 transition-colors">
-          {isMobile && <Smartphone size={24} />}
-          {isDesktop && <Monitor size={24} />}
-        </div>
+      {/* --- 2. طبقة الظل المتدرج (Gradient Overlay) --- */}
+      {/* هذه الطبقة ضرورية جداً لجعل النص الأبيض مقروءاً فوق أي صورة مهما كانت فاتحة */}
+      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none"></div>
 
-        <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">{project.title}</h3>
-        <p className="text-zinc-400 mb-8 leading-relaxed line-clamp-2">
-          {project.tagline}
-        </p>
+      {/* --- 3. المحتوى النصي (مختصر، شفاف، ومثبت في الأسفل) --- */}
+      <div className="relative h-full flex flex-col justify-end p-6 md:p-8 z-10">
+        <div className="flex justify-between items-end gap-4">
+          
+          {/* النصوص المختصرة */}
+          <div className="flex-1">
+            <div className="flex gap-2 text-emerald-400 mb-2 drop-shadow-md">
+              {isMobile && <Smartphone size={20} />}
+              {isDesktop && <Monitor size={20} />}
+            </div>
+            <h3 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight drop-shadow-lg">
+              {project.title}
+            </h3>
+            <p className="text-zinc-300 text-sm md:text-base line-clamp-1 drop-shadow-md">
+              {project.tagline}
+            </p>
+          </div>
 
-        <div className="flex flex-wrap gap-2 mb-8">
-          {project.tech_stack?.slice(0, 3).map((tech: string, i: number) => (
-            <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs px-3 py-1 rounded-full">
-              {tech}
-            </span>
-          ))}
-        </div>
-
-        <div className="pt-6 border-t border-zinc-800/50 mt-auto">
-          <Link href={`/projects/${project.slug}`} className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
-            استكشف دراسة الحالة <ArrowUpLeft size={18} />
+          {/* زر زجاجي شفاف (Glassmorphism Button) */}
+          <Link 
+            href={`/projects/${project.slug}`}
+            className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 group-hover:scale-105 group-hover:border-emerald-500/50"
+            title="استكشف المشروع"
+          >
+            <span className="hidden md:inline font-medium text-sm">استكشف</span>
+            <ArrowUpLeft size={20} className="group-hover:text-emerald-400 transition-colors" />
           </Link>
+
         </div>
       </div>
     </div>
