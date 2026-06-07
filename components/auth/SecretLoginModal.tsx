@@ -34,7 +34,7 @@ export default function SecretLoginModal() {
     setIsLoading(true)
     setErrorMessage('')
 
-    // سمينا الخطأ القادم من قاعدة البيانات signInError
+    // محاولة تسجيل الدخول
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -46,8 +46,13 @@ export default function SecretLoginModal() {
       return
     }
 
-    setIsOpen(false)
-    router.push('/admin')
+    // --- 🟢 الإصلاح هنا 🟢 ---
+    setIsLoading(false) // 1. إعادة حالة الزر لطبيعتها لكي تتمكن من الدخول مجدداً لاحقاً
+    setPassword('') // 2. تفريغ كلمة المرور كإجراء أمني
+    setIsOpen(false) // 3. إغلاق النافذة
+    
+    router.refresh() // 4. إجبار Next.js على تحديث حالة السيرفر لقراءة الـ Cookies الجديدة
+    router.push('/admin') // 5. التوجيه للوحة التحكم
   }
 
   return (
