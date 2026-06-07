@@ -18,22 +18,23 @@ export default function ProjectCard({ project }: { project: any }) {
   const isMobile = hasAndroid || hasIOS
   const isDesktop = hasWindows || hasWeb
 
-  // 2. توزيع المساحات بشكل دقيق (Bento Logic)
-  let bentoClasses = 'col-span-1 row-span-1 min-h-[350px]'
+  // 2. توزيع المساحات بشكل دقيق ومدمج (Compact Bento Logic)
+  let bentoClasses = 'col-span-1 row-span-1 min-h-[250px]' // تم تصغير الحجم القياسي
   
   if (isDesktop && isMobile) {
-    bentoClasses = 'md:col-span-2 md:row-span-2 min-h-[400px] md:min-h-[600px]'
+    bentoClasses = 'md:col-span-2 md:row-span-2 min-h-[300px] md:min-h-[450px]' // العملاق أصبح ألطف
   } else if (isDesktop && !isMobile) {
-    bentoClasses = 'md:col-span-2 md:row-span-1 min-h-[350px] md:min-h-[400px]'
+    bentoClasses = 'md:col-span-2 md:row-span-1 min-h-[250px] md:min-h-[300px]' // العريض أصبح أكثر إحكاماً
   } else if (isMobile && !isDesktop) {
-    bentoClasses = 'md:col-span-1 md:row-span-2 min-h-[400px] md:min-h-[600px]'
+    bentoClasses = 'md:col-span-1 md:row-span-2 min-h-[300px] md:min-h-[450px]' // الطولي أصبح متناسقاً
   }
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
   return (
     <div 
-      className={`group relative rounded-[2rem] overflow-hidden border border-zinc-800 hover:border-emerald-500/50 transition-all duration-500 flex flex-col ${bentoClasses}`}
+      // تم تغيير الحواف إلى rounded-3xl لتبدو أكثر احترافية وأقل انتفاخاً
+      className={`group relative rounded-3xl overflow-hidden border border-zinc-800 hover:border-emerald-500/50 transition-all duration-500 flex flex-col ${bentoClasses}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -61,35 +62,38 @@ export default function ProjectCard({ project }: { project: any }) {
       </div>
 
       {/* التدرج اللوني للقراءة */}
-      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-80 pointer-events-none"></div>
 
-      {/* المحتوى النصي والأيقونات الخضراء */}
-      <div className="relative h-full flex flex-col justify-end p-6 md:p-8 z-10">
-        <div className="flex justify-between items-end gap-4">
+      {/* المحتوى النصي والأيقونات الخضراء (تم تقليل الـ Padding إلى p-5 md:p-6) */}
+      <div className="relative h-full flex flex-col justify-end p-5 md:p-6 z-10">
+        <div className="flex justify-between items-end gap-3">
           
           <div className="flex-1">
-            {/* 🟢 هنا الأيقونات الذكية الجديدة 🟢 */}
-            <div className="flex gap-2 text-emerald-400 mb-2 drop-shadow-md">
-              {hasAndroid && <Smartphone size={20} title="Android" />}
-              {hasIOS && <Apple size={20} title="iOS" />}
-              {hasWindows && <Monitor size={20} title="Windows" />}
-              {hasWeb && <Globe size={20} title="Web" />}
+            {/* 🟢 الأيقونات الذكية تم تصغيرها إلى size 16 🟢 */}
+            <div className="flex gap-1.5 text-emerald-400 mb-1.5 drop-shadow-md">
+              {hasAndroid && <Smartphone size={16} title="Android" />}
+              {hasIOS && <Apple size={16} title="iOS" />}
+              {hasWindows && <Monitor size={16} title="Windows" />}
+              {hasWeb && <Globe size={16} title="Web" />}
             </div>
             
-            <h3 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight drop-shadow-lg">
+            {/* العنوان تم تصغيره ليتناسب مع البطاقة المدمجة */}
+            <h3 className="text-xl md:text-2xl font-bold text-white mb-1.5 leading-tight drop-shadow-lg">
               {project.title}
             </h3>
-            <p className="text-zinc-300 text-sm md:text-base line-clamp-1 drop-shadow-md">
+            {/* الوصف أصبح أصغر قليلاً */}
+            <p className="text-zinc-300/90 text-xs md:text-sm line-clamp-1 drop-shadow-md">
               {project.tagline}
             </p>
           </div>
 
+          {/* زر استكشف تم تصغير حوافه وحجم الخط والأيقونة فيه */}
           <Link 
             href={`/projects/${project.slug}`}
-            className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-3 md:px-6 md:py-3 rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 group-hover:scale-105 group-hover:border-emerald-500/50"
+            className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2.5 md:px-4 md:py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:scale-105 group-hover:border-emerald-500/50"
           >
-            <span className="hidden md:inline font-medium text-sm">استكشف</span>
-            <ArrowUpLeft size={20} className="group-hover:text-emerald-400 transition-colors" />
+            <span className="hidden md:inline font-medium text-xs">استكشف</span>
+            <ArrowUpLeft size={16} className="group-hover:text-emerald-400 transition-colors" />
           </Link>
 
         </div>
