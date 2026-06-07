@@ -76,22 +76,24 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* --- قسم المشاريع (حر يمتد من الحافة للحافة) --- */}
-        <section id="projects" className="py-20 border-t border-zinc-900 w-full overflow-hidden bg-zinc-950/50">
+        {/* --- قسم المشاريع (Bento Grid) --- */}
+        <section id="projects" className="py-20 border-t border-zinc-900 w-full bg-zinc-950/50">
           
-          {/* العنوان مقيد ليكون بمحاذاة باقي عناصر الموقع */}
           <div className="max-w-5xl mx-auto px-6 mb-12 flex items-center gap-4">
             <Code2 className="text-emerald-500" size={32} />
             <h2 className="text-3xl font-bold">تطبيقات ومشاريع بارزة</h2>
           </div>
 
-          {/* شريط التمرير ممتد بالكامل مع مسافات (Padding) متوازنة */}
-          <div className="w-full">
-            <div className="flex overflow-x-auto gap-6 px-6 lg:px-12 pb-12 pt-4 snap-x snap-mandatory hide-scrollbar">
+          {/* 
+            هنا سحر البينتو جريد! 
+            أعطينا الشبكة عرضاً واسعاً جداً (max-w-[90rem]) لتبدو ممتدة بشكل مريح.
+            استخدمنا grid-flow-row-dense لكي تسد البطاقات الفراغات بناءً على أحجامها.
+          */}
+          <div className="max-w-[90rem] mx-auto px-6 lg:px-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 grid-flow-row-dense">
               {projects?.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
-              <div className="shrink-0 w-6 md:w-12"></div>
             </div>
           </div>
         </section>
