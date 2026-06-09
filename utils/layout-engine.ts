@@ -5,11 +5,15 @@ export type LayoutMode = 'bento' | 'stack' | 'scattered';
 export function getContainerStyles(mode: LayoutMode) {
   switch (mode) {
     case 'bento':
-      return "grid grid-rows-2 grid-flow-col-dense items-center gap-6 md:gap-10 h-[550px] md:h-[650px]";
+      // 3 صفوف (grid-rows-3) لعمل تداخل تيتريس متقدم
+      return "grid grid-rows-3 grid-flow-col-dense items-center gap-6 md:gap-10 h-[500px] md:h-[650px]";
+      
     case 'stack':
       return "flex flex-col flex-wrap justify-center gap-6 md:gap-10 h-[700px] md:h-[850px]";
+      
     case 'scattered':
       return "flex gap-12 md:gap-20 items-center h-[600px] md:h-[750px]";
+      
     default:
       return "flex gap-6 h-[500px]";
   }
@@ -24,30 +28,29 @@ export function getCardStyles(mode: LayoutMode, platforms: string[] = [], index:
   let cardHeight = '';
   let transformClass = '';
 
-  // 👈 السر هنا: استخدام الـ index لصنع "عشوائية منتظمة"
-  // wVar يختار العرض، و hVar يختار الطول بشكل متعاكس لضمان عدم التكرار
   const wVar = index % 3;
   const hVar = (index + 1) % 3; 
   const scatterPattern = index % 4;
 
   if (mode === 'bento') {
+    // --- 🌟 استراتيجية البينتو ثلاثية الأبعاد (Multi-Row Bento) المعدلة 🌟 ---
     if (isDesktop && isMobile) {
-      gridClass = 'row-span-2';
-      // 3 احتمالات لعرض وطول العملاق
-      cardWidth = ['w-[320px] md:w-[480px]', 'w-[300px] md:w-[440px]', 'w-[340px] md:w-[500px]'][wVar];
-      cardHeight = ['h-[380px] md:h-[450px]', 'h-[360px] md:h-[420px]', 'h-[400px] md:h-[480px]'][hVar];
+      gridClass = 'row-span-3'; // يأخذ 3 صفوف (الارتفاع الكامل لـ 650px)
+      cardWidth = ['w-[320px] md:w-[480px]', 'w-[340px] md:w-[520px]', 'w-[360px] md:w-[560px]'][wVar];
+      // 👈 تم استبدال h-full بأطوال ثابتة متناسقة تمنع الانهيار البصري
+      cardHeight = ['h-[380px] md:h-[480px]', 'h-[400px] md:h-[510px]', 'h-[420px] md:h-[540px]'][hVar];
     } else if (isMobile && !isDesktop) {
-      gridClass = 'row-span-2';
-      // 3 احتمالات لعرض وطول الجوال
-      cardWidth = ['w-[260px] md:w-[320px]', 'w-[240px] md:w-[280px]', 'w-[280px] md:w-[340px]'][wVar];
-      cardHeight = ['h-[320px] md:h-[380px]', 'h-[300px] md:h-[350px]', 'h-[340px] md:h-[420px]'][hVar];
+      gridClass = 'row-span-2'; // يأخذ صفين (من أصل 3 صفوف)
+      cardWidth = ['w-[240px] md:w-[300px]', 'w-[260px] md:w-[320px]', 'w-[280px] md:w-[340px]'][wVar];
+      // 👈 تم استبدال h-full بأطوال ثابتة متناسقة
+      cardHeight = ['h-[280px] md:h-[320px]', 'h-[300px] md:h-[350px]', 'h-[320px] md:h-[380px]'][hVar];
     } else {
-      gridClass = 'row-span-1';
-      // 3 احتمالات لعرض وطول الويب
-      cardWidth = ['w-[300px] md:w-[420px]', 'w-[280px] md:w-[380px]', 'w-[320px] md:w-[460px]'][wVar];
-      cardHeight = ['h-[180px] md:h-[220px]', 'h-[160px] md:h-[200px]', 'h-[200px] md:h-[250px]'][hVar];
+      gridClass = 'row-span-1'; // يأخذ صفاً واحداً
+      cardWidth = ['w-[280px] md:w-[380px]', 'w-[300px] md:w-[420px]', 'w-[320px] md:w-[460px]'][wVar];
+      // 👈 تم استبدال h-full بأطوال ثابتة متناسقة
+      cardHeight = ['h-[130px] md:h-[160px]', 'h-[140px] md:h-[180px]', 'h-[150px] md:h-[200px]'][hVar];
     }
-    transformClass = scatterPattern % 2 === 0 ? '-translate-y-4' : 'translate-y-4';
+    transformClass = ''; // الحفاظ على انتظام البينتو
 
   } else if (mode === 'stack') {
     if (isDesktop && isMobile) {
