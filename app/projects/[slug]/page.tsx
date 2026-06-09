@@ -1,7 +1,8 @@
 // app/projects/[slug]/page.tsx
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Smartphone, Monitor, Download, ExternalLink, Images, PlayCircle, Globe, Apple } from 'lucide-react'
+import Image from 'next/image' // 👈
+import { ArrowRight, Smartphone, Monitor, Download, ExternalLink, PlayCircle, Globe, Apple } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -36,7 +37,6 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
     notFound()
   }
 
-  // استخراج مصفوفة الميزات (النقاط) مع توفير مصفوفة فارغة كاحتياطي
   const features = project.features || []
 
   return (
@@ -51,7 +51,6 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
 
       <main className="max-w-5xl mx-auto px-6">
         
-        {/* --- الترويسة الرئيسية للمشروع --- */}
         <div className="mb-20 text-center md:text-right">
           <div className="flex justify-center md:justify-start gap-3 text-emerald-500 mb-6">
             {project.platforms?.includes('Android') && <Smartphone size={28} title="Android" />}
@@ -68,11 +67,15 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
           </p>
 
           {project.thumbnail_url && (
-            <div className="w-full rounded-[2rem] overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative">
-              <img 
+            // 👈 إعطاء ارتفاع ثابت متجاوب لتطبيق خاصية fill بشكل صحيح
+            <div className="w-full h-[300px] md:h-[500px] lg:h-[700px] rounded-[2rem] overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative">
+              <Image 
                 src={project.thumbnail_url} 
                 alt={project.title} 
-                className="w-full h-auto max-h-[700px] object-cover object-top"
+                fill
+                priority // 👈 يخبر Next.js أن هذه الصورة مهمة جداً ويجب تحميلها فوراً
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                className="object-cover object-top"
               />
             </div>
           )}
@@ -80,7 +83,6 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
-          {/* --- العمود الجانبي (المعلومات والروابط) --- */}
           <aside className="lg:col-span-4 space-y-8 order-2 lg:order-1">
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 sticky top-8 backdrop-blur-sm">
               <div className="mb-8">
@@ -130,10 +132,8 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
             </div>
           </aside>
 
-          {/* --- محتوى دراسة الحالة (النقاط التفاعلية) --- */}
           <article className="lg:col-span-8 order-1 lg:order-2">
             
-            {/* المقدمة العامة للمشروع إن وجدت */}
             {project.description && (
               <div className="prose prose-invert prose-emerald max-w-none prose-lg prose-headings:font-bold prose-p:leading-relaxed mb-20 text-zinc-300">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -142,13 +142,11 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
               </div>
             )}
 
-            {/* --- حلقة المرور على النقاط (Features Loop) --- */}
             {features.length > 0 && (
               <div className="space-y-32">
                 {features.map((feature: any, index: number) => (
                   <section key={index} className="relative">
                     
-                    {/* رقم هندسي فخم في الخلفية */}
                     <div className="absolute -top-16 -right-8 text-[10rem] font-black text-zinc-800/30 select-none pointer-events-none z-0">
                       {String(index + 1).padStart(2, '0')}
                     </div>
@@ -164,7 +162,6 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
                         </ReactMarkdown>
                       </div>
 
-                      {/* عرض فيديو النقطة (إن وجد) */}
                       {feature.video_url && (
                         <div className="rounded-3xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl mb-8">
                           <video 
@@ -179,15 +176,17 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
                         </div>
                       )}
 
-                      {/* عرض صور النقطة كشبكة (إن وجدت) */}
                       {feature.image_urls && feature.image_urls.length > 0 && (
                         <div className={`grid gap-4 ${feature.image_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-2'}`}>
                           {feature.image_urls.map((imgUrl: string, imgIndex: number) => (
-                            <div key={imgIndex} className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group">
-                              <img 
+                            // 👈 استخدام aspect-video لضمان أبعاد متناسقة للصور
+                            <div key={imgIndex} className="relative aspect-video rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group">
+                              <Image 
                                 src={imgUrl} 
                                 alt={`${feature.title} - لقطة ${imgIndex + 1}`} 
-                                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" 
+                                fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="object-cover group-hover:scale-105 transition-transform duration-700" 
                               />
                             </div>
                           ))}
