@@ -3,16 +3,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image' // 👈 استدعاء مكون الصور من Next.js
-import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion' // 👈 إضافة useReducedMotion
+import Image from 'next/image' 
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion' 
 import { Smartphone, Monitor, Globe, Apple, ArrowUpLeft } from 'lucide-react'
 
 export default function ProjectCard3D({ project, index }: { project: any, index: number }) {
   const [isHovered, setIsHovered] = useState(false)
-
-  // 👈 التحقق مما إذا كان المستخدم يفضل إيقاف الحركات في جهازه
   const shouldReduceMotion = useReducedMotion()
-
   const x = useMotionValue(0)
   const y = useMotionValue(0)
 
@@ -23,8 +20,7 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"])
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (shouldReduceMotion) return // 👈 إلغاء تحديث الإحداثيات إذا كان المود مفعلاً
-
+    if (shouldReduceMotion) return 
     const rect = e.currentTarget.getBoundingClientRect()
     const width = rect.width
     const height = rect.height
@@ -32,7 +28,6 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
     const mouseY = e.clientY - rect.top
     const xPct = mouseX / width - 0.5
     const yPct = mouseY / height - 0.5
-    
     x.set(xPct)
     y.set(yPct)
   }
@@ -47,29 +42,36 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
   const isMobile = platforms.includes('Android') || platforms.includes('iOS') || platforms.includes('iPhone')
   const isDesktop = platforms.includes('Windows') || platforms.includes('Web')
 
+  // 👈 هنا أعدنا التفاوت الجمالي (الأطوال والمحاذاة الحرة)
   let cardWidth = 'w-[300px] md:w-[350px]' 
   let alignment = 'self-center' 
-  let mediaHeight = 'min-h-[450px]'
+  let mediaHeight = 'h-[400px] md:h-[450px]'
 
   if (isDesktop && isMobile) {
-    cardWidth = 'w-[85vw] md:w-[700px]' 
+    // 👑 العملاق: يتوسط الشاشة دائماً ويكون الأطول
+    cardWidth = 'w-[85vw] md:w-[650px]' 
     alignment = 'self-center' 
-    mediaHeight = 'min-h-[550px]'
-  } 
-  else if (isDesktop && !isMobile) {
-    cardWidth = 'w-[85vw] md:w-[550px]' 
-    alignment = 'self-start' 
-    mediaHeight = 'min-h-[350px]'
+    mediaHeight = 'h-[450px] md:h-[550px]'
   } 
   else if (isMobile && !isDesktop) {
-    cardWidth = 'w-[300px] md:w-[380px]' 
-    alignment = 'self-end' 
-    mediaHeight = 'min-h-[480px]'
+    // 📱 الجوال (طولي): طوله كبير لكن عرضه نحيف.
+    // نستخدم index لجعله يطفو مرة للأعلى ومرة للأسفل بتفاوت
+    cardWidth = 'w-[280px] md:w-[320px]' 
+    alignment = index % 2 === 0 ? 'self-end mb-8' : 'self-start mt-8'
+    mediaHeight = 'h-[450px] md:h-[500px]'
+  } 
+  else if (isDesktop && !isMobile) {
+    // 💻 الويب (عرضي): قصير وعريض.
+    // عكسنا الـ index هنا لكي لا يتوازى مع الجوال ويصنع حركة "متموجة"
+    cardWidth = 'w-[400px] md:w-[480px]' 
+    alignment = index % 2 === 0 ? 'self-start mt-8' : 'self-end mb-8'
+    mediaHeight = 'h-[300px] md:h-[350px]'
   }
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
   return (
+    // 👈 دمج العرض، والتموضع (alignment) لتطفو البطاقة في مكانها
     <div className={`${cardWidth} shrink-0 snap-center ${alignment} relative group`} style={{ perspective: "1500px" }}>
       
       <motion.div
@@ -77,20 +79,20 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={handleMouseLeave}
         style={{
-          rotateX: shouldReduceMotion ? 0 : rotateX, // 👈 تعطيل الدوران إذا لزم الأمر
+          rotateX: shouldReduceMotion ? 0 : rotateX, 
           rotateY: shouldReduceMotion ? 0 : rotateY,
           transformStyle: "preserve-3d",
         }}
+        // 👈 أعدنا الارتفاع الصريح mediaHeight بدلاً من h-full
         className={`relative ${mediaHeight} w-full rounded-[2.5rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-2xl transition-colors duration-500 cursor-pointer`}
       >
         
-        {/* --- طبقة الفيديو والصورة الخلفية --- */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none rounded-[2.5rem] overflow-hidden">
+        <div className="absolute inset-0 w-full h-full pointer-events-none rounded-[2.5rem] overflow-hidden bg-zinc-900">
           {project.thumbnail_url && (
             <Image 
               src={project.thumbnail_url} 
               alt={project.title}
-              fill // 👈 تجعل الصورة تأخذ مساحة الأب بالكامل
+              fill 
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className={`object-cover object-top transition-all duration-700 ${
                 isHovered && project.demo_url ? 'opacity-0 scale-100' : 'opacity-100 scale-105'
@@ -117,9 +119,8 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
 
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none rounded-[2.5rem]"></div>
 
-        {/* --- طبقة النصوص والأيقونات البارزة --- */}
         <div 
-          style={{ transform: shouldReduceMotion ? "none" : "translateZ(60px)" }} // 👈 إيقاف البروز إذا لزم الأمر
+          style={{ transform: shouldReduceMotion ? "none" : "translateZ(60px)" }} 
           className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end z-10 pointer-events-none"
         >
           <div className="flex justify-between items-end gap-4 pointer-events-auto">

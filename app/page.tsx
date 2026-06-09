@@ -79,20 +79,35 @@ export default async function Home() {
         </section>
 
         {/* --- 🌊 قسم المشاريع (الشبكة اللانهائية الناعمة 3D) 🌊 --- */}
-        <section id="projects" className="py-24 border-t border-zinc-900 w-full overflow-hidden bg-zinc-950 relative">
+        <section id="projects" className="py-24 border-t border-zinc-900 w-full overflow-hidden relative bg-zinc-950">
           
-          <div className="max-w-5xl mx-auto px-6 mb-12 flex items-center gap-4 relative z-20">
-            <Code2 className="text-emerald-500" size={32} />
-            <h2 className="text-3xl font-bold">معرض الأعمال التفاعلي</h2>
+          {/* 🌟 تأثير الخلفية الجديد (Tech Grid + Aurora Glow) 🌟 */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            {/* 1. التوهج الزمردي المركزي (Aurora) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] md:w-[1000px] h-[300px] md:h-[500px] bg-emerald-500/10 blur-[120px] rounded-full opacity-60"></div>
+            
+            {/* 2. شبكة الخطوط الهندسية (Tech Grid) مع قناع تدرج (Mask) لتتلاشى في الأطراف */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272a_1px,transparent_1px),linear-gradient(to_bottom,#27272a_1px,transparent_1px)] bg-[size:3rem_3rem] md:bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40"></div>
           </div>
 
-          <div className="w-full relative flex items-center">
-            
-            {/* التدرجات اللونية (Fade Edges) لإخفاء الأطراف بجمالية */}
-            <div className="absolute top-0 bottom-0 right-0 w-16 md:w-48 bg-gradient-to-l from-zinc-950 to-transparent z-20 pointer-events-none"></div>
-            <div className="absolute top-0 bottom-0 left-0 w-16 md:w-48 bg-gradient-to-r from-zinc-950 to-transparent z-20 pointer-events-none"></div>
+          {/* عنوان القسم */}
+          <div className="max-w-5xl mx-auto px-6 mb-12 flex items-center gap-4 relative z-20">
+            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl">
+              <Code2 className="text-emerald-500" size={28} />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-white">معرض الأعمال التفاعلي</h2>
+              <p className="text-zinc-500 text-sm mt-1">مرر الماوس فوق البطاقات لاستكشاف التفاصيل</p>
+            </div>
+          </div>
 
-            {/* 🟢 محرك التمرير الناعم السحري يحضن المشاريع 🟢 */}
+          <div className="w-full relative flex items-center z-10">
+            
+            {/* التدرجات اللونية (Fade Edges) زِدنا عرضها لتصبح أنعم */}
+            <div className="absolute top-0 bottom-0 right-0 w-24 md:w-64 bg-gradient-to-l from-zinc-950 to-transparent z-20 pointer-events-none"></div>
+            <div className="absolute top-0 bottom-0 left-0 w-24 md:w-64 bg-gradient-to-r from-zinc-950 to-transparent z-20 pointer-events-none"></div>
+
+            {/* 🟢 محرك التمرير الناعم السحري 🟢 */}
             <SmoothMarquee>
               {projects?.map((project, index) => (
                 <ProjectCard3D key={project.id} project={project} index={index} />
