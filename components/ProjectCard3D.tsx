@@ -38,51 +38,47 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
     setIsHovered(false)
   }
 
-  // --- 1. تحديد الحجم بناءً على نوع المنصة (أحجام مصغرة وأنيقة) ---
   const platforms = project.platforms || []
   const isMobile = platforms.includes('Android') || platforms.includes('iOS') || platforms.includes('iPhone')
   const isDesktop = platforms.includes('Windows') || platforms.includes('Web')
 
-  let cardWidth = 'w-[260px] md:w-[320px]' 
-  let mediaHeight = 'h-[300px] md:h-[350px]'
+  // --- هندسة الـ Dense Grid & Floating ---
+  let gridClass = 'row-span-1'
+  let alignment = 'self-center'
+  let cardWidth = 'w-[300px]'
+  let mediaHeight = 'h-[300px]'
+
+  const scatterPattern = index % 4; // نمط عشوائي مبني على 4 حالات
 
   if (isDesktop && isMobile) {
-    // العملاق (أصبح بحجم متوسط وأنيق)
-    cardWidth = 'w-[320px] md:w-[450px]' 
-    mediaHeight = 'h-[350px] md:h-[400px]'
+    // 👑 العملاق: يأخذ الارتفاع كاملاً (row-span-2) ويطفو ببطء
+    gridClass = 'row-span-2'
+    cardWidth = 'w-[320px] md:w-[450px]'
+    mediaHeight = 'h-[400px] md:h-[480px]'
+    alignment = scatterPattern % 2 === 0 ? 'self-center' : 'self-start mt-12 md:mt-24'
   } 
   else if (isMobile && !isDesktop) {
-    // الجوال (نحيف وطويل قليلاً)
-    cardWidth = 'w-[240px] md:w-[280px]' 
-    mediaHeight = 'h-[380px] md:h-[450px]'
+    // 📱 الجوال: يأخذ الارتفاع كاملاً (row-span-2) ويتأرجح
+    gridClass = 'row-span-2'
+    cardWidth = 'w-[260px] md:w-[300px]'
+    mediaHeight = 'h-[420px] md:h-[500px]'
+    alignment = scatterPattern % 2 === 0 ? 'self-end mb-12 md:mb-24' : 'self-start mt-12 md:mt-16'
   } 
   else if (isDesktop && !isMobile) {
-    // الويب (عريض وقصير)
-    cardWidth = 'w-[300px] md:w-[400px]' 
-    mediaHeight = 'h-[250px] md:h-[300px]'
-  }
-
-  // --- 2. خوارزمية التناثر العشوائي (Scattered Layout) ---
-  // نستخدم (index % 5) لإنشاء 5 مستويات مختلفة من الارتفاعات لتبدو عشوائية
-  let alignment = 'self-center'
-  const scatterPattern = index % 5;
-
-  if (scatterPattern === 0) {
-    alignment = 'self-start mt-8 md:mt-12' // يطفو في الأعلى
-  } else if (scatterPattern === 1) {
-    alignment = 'self-end mb-12 md:mb-20' // يغوص في الأسفل
-  } else if (scatterPattern === 2) {
-    alignment = 'self-start mt-32 md:mt-48' // معلق في النصف العلوي
-  } else if (scatterPattern === 3) {
-    alignment = 'self-end mb-32 md:mb-48' // معلق في النصف السفلي
-  } else {
-    alignment = 'self-center' // يتوسط الشاشة
+    // 💻 الويب: يأخذ صفاً واحداً فقط (row-span-1). 
+    // هذه البطاقات ستتكاثر فوق بعضها في نفس العمود!
+    gridClass = 'row-span-1'
+    cardWidth = 'w-[300px] md:w-[380px]'
+    mediaHeight = 'h-[260px] md:h-[300px]'
+    // بما أنها تملك خليتها الخاصة، ستطفو قليلاً للأعلى والأسفل داخل الخليّة
+    alignment = scatterPattern % 2 === 0 ? 'self-start mt-4' : 'self-end mb-4'
   }
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
   return (
-    <div className={`${cardWidth} shrink-0 snap-center ${alignment} relative group`} style={{ perspective: "1500px" }}>
+    // 👈 دمجنا جميع خصائص الشبكة والمحاذاة في الحاوية الأم
+    <div className={`${cardWidth} ${gridClass} ${alignment} shrink-0 relative group`} style={{ perspective: "1500px" }}>
       
       <motion.div
         onMouseMove={handleMouseMove}
@@ -93,7 +89,7 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
           rotateY: shouldReduceMotion ? 0 : rotateY,
           transformStyle: "preserve-3d",
         }}
-        // تم تصغير حواف البطاقة قليلاً لتناسب الحجم الجديد rounded-[2rem]
+        // 👈 الارتفاع الفعلي للبطاقة
         className={`relative ${mediaHeight} w-full rounded-[2rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-colors duration-500 cursor-pointer`}
       >
         
@@ -129,7 +125,6 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
 
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none rounded-[2rem]"></div>
 
-        {/* تم تصغير الـ Padding ليناسب البطاقة المصغرة p-5 */}
         <div 
           style={{ transform: shouldReduceMotion ? "none" : "translateZ(40px)" }} 
           className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end z-10 pointer-events-none"
@@ -143,7 +138,6 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
                 {platforms.includes('Web') && <Globe size={16} />}
               </div>
               
-              {/* تصغير حجم الخط ليتناسب مع البطاقة المصغرة */}
               <h3 className="text-xl md:text-2xl font-bold text-white mb-1.5 leading-tight drop-shadow-xl">
                 {project.title}
               </h3>

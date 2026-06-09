@@ -50,14 +50,15 @@ export default function SmoothMarquee({ children }: { children: React.ReactNode 
       onTouchStart={() => speedRef.current = 0}
       onTouchEnd={() => speedRef.current = 1}
     >
-      {/* حاوية مرنة جداً بارتفاع 750px لتعطي مجالاً للتفاوت */}
-      <div ref={trackRef} className="w-max flex gap-12 md:gap-20 px-4 h-[600px] md:h-[750px]">
+      {/* 👈 الارتفاع هنا ضخم (900px) ليتسع لبطاقتين فوق بعضهما براحة تامة */}
+      <div ref={trackRef} className="w-max flex gap-8 md:gap-12 px-4 h-[700px] md:h-[900px]">
         
-        <div className="flex gap-12 md:gap-20 h-full">
+        {/* 👈 السحر هنا: grid-flow-col-dense سيقوم بحشر البطاقات الصغيرة فوق بعضها في الفراغات! */}
+        <div className="grid grid-rows-2 grid-flow-col-dense gap-8 md:gap-12 h-full">
           {children}
         </div>
         
-        <div className="flex gap-12 md:gap-20 h-full">
+        <div className="grid grid-rows-2 grid-flow-col-dense gap-8 md:gap-12 h-full">
           {children}
         </div>
 
