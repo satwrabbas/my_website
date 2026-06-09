@@ -7,32 +7,34 @@ import Image from 'next/image'
 import { motion } from 'framer-motion' 
 import { Smartphone, Monitor, Globe, Apple, ArrowUpLeft } from 'lucide-react'
 
-// 👈 استيراد أدوات المنطق والحركة المنفصلة
-import { getCardLayout } from '@/utils/card-layout'
+// 👈 1. استيراد محرك التخطيط الجديد بدلاً من الملف القديم
+import { getCardStyles } from '@/utils/layout-engine'
 import { use3DPhysics } from '@/hooks/use-3d-physics'
 
-export default function ProjectCard3D({ project, index }: { project: any, index: number }) {
-  // حالة الـ Hover لعرض الفيديو
-  const [isHovered, setIsHovered] = useState(false)
-  
-  // 1. تشغيل فيزياء الـ 3D
-  const physics = use3DPhysics()
+// 👈 2. تحديد نوع التخطيط النشط (يجب أن يكون مطابقاً للموجود في SmoothMarquee)
+const ACTIVE_LAYOUT = 'bento' // يمكنك تغييره إلى 'stack' أو 'scattered'
 
-  // 2. جلب المقاسات والستايلات المناسبة
+export default function ProjectCard3D({ project, index }: { project: any, index: number }) {
+  const [isHovered, setIsHovered] = useState(false)
+  const physics = use3DPhysics()
+  
   const platforms = project.platforms || []
-  const layout = getCardLayout(platforms, index)
+  
+  // 👈 3. جلب الستايلات من محرك التخطيط بناءً على وضع التخطيط النشط
+  const { gridClass, cardWidth, cardHeight, transformClass } = getCardStyles(ACTIVE_LAYOUT, platforms, index)
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
-  // دالة مجمعة للتعامل مع خروج الماوس (إيقاف الفيديو + تصفير الحركة)
   const onMouseLeave = () => {
     physics.handleMouseLeave()
     setIsHovered(false)
   }
 
   return (
-    <div className={`${layout.cardWidth} ${layout.mediaHeight} ${layout.translateYClass} shrink-0 relative group`} style={{ perspective: "1500px" }}>
+    // 👈 4. تطبيق العرض (cardWidth) والخلية (gridClass) على الحاوية الوهمية الأم
+    <div className={`${cardWidth} ${gridClass} flex items-center justify-center shrink-0 relative group`} style={{ perspective: "1500px" }}>
       
+      {/* 👈 5. تطبيق الطول الفعلي (cardHeight) وحركة التناثر (transformClass) على البطاقة نفسها */}
       <motion.div
         onMouseMove={physics.handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
@@ -42,10 +44,9 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
           rotateY: physics.rotateY,
           transformStyle: "preserve-3d",
         }}
-        className="relative w-full h-full rounded-[2rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-colors duration-500 cursor-pointer"
+        className={`relative w-full ${cardHeight} ${transformClass} rounded-[2rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 cursor-pointer`}
       >
         
-        {/* --- طبقة الفيديو والصورة الخلفية --- */}
         <div className="absolute inset-0 w-full h-full pointer-events-none rounded-[2rem] overflow-hidden bg-zinc-900">
           {project.thumbnail_url && (
             <Image 
@@ -76,12 +77,11 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
           )}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none rounded-[2rem]"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none rounded-[2rem]"></div>
 
-        {/* --- طبقة النصوص والأيقونات البارزة --- */}
         <div 
           style={{ transform: physics.shouldReduceMotion ? "none" : "translateZ(40px)" }} 
-          className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end z-10 pointer-events-none"
+          className="absolute inset-0 p-5 md:p-8 flex flex-col justify-end z-10 pointer-events-none"
         >
           <div className="flex justify-between items-end gap-3 pointer-events-auto">
             <div className="flex-1">
@@ -103,10 +103,9 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
             <Link 
               href={`/projects/${project.slug}`}
               style={{ transform: physics.shouldReduceMotion ? "none" : "translateZ(20px)" }}
-              className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2.5 md:px-4 md:py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all duration-300 hover:scale-105 hover:border-emerald-500/50 shadow-2xl"
+              className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-3 md:px-4 md:py-3 rounded-xl flex items-center justify-center gap-1.5 transition-all duration-300 hover:scale-105 hover:border-emerald-500/50 shadow-2xl"
             >
-              <span className="hidden md:inline font-medium text-xs">استكشف</span>
-              <ArrowUpLeft size={16} className="text-emerald-400" />
+              <ArrowUpLeft size={18} className="text-emerald-400" />
             </Link>
           </div>
         </div>

@@ -16,7 +16,6 @@ export default function SmoothMarquee({ children }: { children: React.ReactNode 
         maxScrollRef.current = trackRef.current.scrollWidth / 2
       }
     }
-
     calculateMaxScroll()
     window.addEventListener('resize', calculateMaxScroll)
 
@@ -33,9 +32,7 @@ export default function SmoothMarquee({ children }: { children: React.ReactNode 
       }
       animationId = requestAnimationFrame(animate)
     }
-    
     animationId = requestAnimationFrame(animate)
-    
     return () => {
       window.removeEventListener('resize', calculateMaxScroll)
       cancelAnimationFrame(animationId)
@@ -50,15 +47,14 @@ export default function SmoothMarquee({ children }: { children: React.ReactNode 
       onTouchStart={() => speedRef.current = 0}
       onTouchEnd={() => speedRef.current = 1}
     >
-      {/* الحاوية الرئيسية بارتفاع 900px */}
-      <div ref={trackRef} className="w-max flex gap-8 md:gap-16 px-4 h-[750px] md:h-[900px]">
+      <div ref={trackRef} className="w-max flex gap-6 md:gap-10 px-4 h-[550px] md:h-[650px]">
         
-        {/* السحر هنا: flex-col flex-wrap يجبر المشاريع على التكدس فوق بعضها بنفس العمود بدقة متناهية! */}
-        <div className="flex flex-col flex-wrap items-center justify-center gap-6 md:gap-10 h-full">
+        {/* 👈 شبكة البينتو المتداخلة (Dense) مع تمركز العناصر (items-center) */}
+        <div className="grid grid-rows-2 grid-flow-col-dense items-center gap-6 md:gap-10 h-full">
           {children}
         </div>
         
-        <div className="flex flex-col flex-wrap items-center justify-center gap-6 md:gap-10 h-full">
+        <div className="grid grid-rows-2 grid-flow-col-dense items-center gap-6 md:gap-10 h-full">
           {children}
         </div>
 
