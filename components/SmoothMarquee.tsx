@@ -50,14 +50,14 @@ export default function SmoothMarquee({ children }: { children: React.ReactNode 
       onTouchStart={() => speedRef.current = 0}
       onTouchEnd={() => speedRef.current = 1}
     >
-      {/* 👈 حاوية مرنة جداً بارتفاع 750px لتعطي مجالاً للتفاوت صعوداً ونزولاً */}
-      <div ref={trackRef} className="w-max flex gap-8 px-4 h-[600px] md:h-[750px]">
+      {/* حاوية مرنة جداً بارتفاع 750px لتعطي مجالاً للتفاوت */}
+      <div ref={trackRef} className="w-max flex gap-12 md:gap-20 px-4 h-[600px] md:h-[750px]">
         
-        <div className="flex gap-8 h-full">
+        <div className="flex gap-12 md:gap-20 h-full">
           {children}
         </div>
         
-        <div className="flex gap-8 h-full">
+        <div className="flex gap-12 md:gap-20 h-full">
           {children}
         </div>
 
