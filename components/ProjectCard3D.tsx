@@ -42,43 +42,41 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
   const isMobile = platforms.includes('Android') || platforms.includes('iOS') || platforms.includes('iPhone')
   const isDesktop = platforms.includes('Windows') || platforms.includes('Web')
 
-  // --- هندسة الـ Dense Grid & Floating ---
-  let gridClass = 'row-span-1'
-  let alignment = 'self-center'
+  // --- الابعاد الدقيقة لضمان التكدس العمودي ---
   let cardWidth = 'w-[300px]'
   let mediaHeight = 'h-[300px]'
 
-  const scatterPattern = index % 4; // نمط عشوائي مبني على 4 حالات
-
   if (isDesktop && isMobile) {
-    // 👑 العملاق: يأخذ الارتفاع كاملاً (row-span-2) ويطفو ببطء
-    gridClass = 'row-span-2'
-    cardWidth = 'w-[320px] md:w-[450px]'
-    mediaHeight = 'h-[400px] md:h-[480px]'
-    alignment = scatterPattern % 2 === 0 ? 'self-center' : 'self-start mt-12 md:mt-24'
+    // 👑 العملاق: يأخذ العمود لوحده بفضل ارتفاعه الضخم
+    cardWidth = 'w-[320px] md:w-[480px]'
+    mediaHeight = 'h-[500px] md:h-[650px]'
   } 
   else if (isMobile && !isDesktop) {
-    // 📱 الجوال: يأخذ الارتفاع كاملاً (row-span-2) ويتأرجح
-    gridClass = 'row-span-2'
-    cardWidth = 'w-[260px] md:w-[300px]'
-    mediaHeight = 'h-[420px] md:h-[500px]'
-    alignment = scatterPattern % 2 === 0 ? 'self-end mb-12 md:mb-24' : 'self-start mt-12 md:mt-16'
+    // 📱 الجوال: سيتشارك العمود مع مشروع ويب تحته أو فوقه!
+    cardWidth = 'w-[260px] md:w-[320px]'
+    mediaHeight = 'h-[400px] md:h-[500px]'
   } 
   else if (isDesktop && !isMobile) {
-    // 💻 الويب: يأخذ صفاً واحداً فقط (row-span-1). 
-    // هذه البطاقات ستتكاثر فوق بعضها في نفس العمود!
-    gridClass = 'row-span-1'
-    cardWidth = 'w-[300px] md:w-[380px]'
-    mediaHeight = 'h-[260px] md:h-[300px]'
-    // بما أنها تملك خليتها الخاصة، ستطفو قليلاً للأعلى والأسفل داخل الخليّة
-    alignment = scatterPattern % 2 === 0 ? 'self-start mt-4' : 'self-end mb-4'
+    // 💻 الويب: يمكن أن تتكدس بطاقتان أو ثلاث على نفس الخط العمودي تماماً
+    cardWidth = 'w-[300px] md:w-[420px]'
+    mediaHeight = 'h-[250px] md:h-[300px]'
   }
+
+  // --- خوارزمية التناثر الوهمي (Scattered Illusion) ---
+  // نستخدم translate-y لكي تطفو البطاقات للأعلى والأسفل بصرياً دون أن تكسر الخط العمودي الهندسي!
+  let translateYClass = '';
+  const scatterPattern = index % 4;
+  
+  if (scatterPattern === 0) translateYClass = '-translate-y-6 md:-translate-y-10'
+  else if (scatterPattern === 1) translateYClass = 'translate-y-6 md:translate-y-10'
+  else if (scatterPattern === 2) translateYClass = '-translate-y-2 md:-translate-y-4'
+  else translateYClass = 'translate-y-2 md:translate-y-4'
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
   return (
-    // 👈 دمجنا جميع خصائص الشبكة والمحاذاة في الحاوية الأم
-    <div className={`${cardWidth} ${gridClass} ${alignment} shrink-0 relative group`} style={{ perspective: "1500px" }}>
+    // 👈 وضعنا الطول والعرض والإزاحة الوهمية (translate) على الحاوية الأم
+    <div className={`${cardWidth} ${mediaHeight} ${translateYClass} shrink-0 relative group`} style={{ perspective: "1500px" }}>
       
       <motion.div
         onMouseMove={handleMouseMove}
@@ -89,8 +87,7 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
           rotateY: shouldReduceMotion ? 0 : rotateY,
           transformStyle: "preserve-3d",
         }}
-        // 👈 الارتفاع الفعلي للبطاقة
-        className={`relative ${mediaHeight} w-full rounded-[2rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-colors duration-500 cursor-pointer`}
+        className="relative w-full h-full rounded-[2rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-colors duration-500 cursor-pointer"
       >
         
         <div className="absolute inset-0 w-full h-full pointer-events-none rounded-[2rem] overflow-hidden bg-zinc-900">

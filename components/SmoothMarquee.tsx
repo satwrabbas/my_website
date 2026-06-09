@@ -44,21 +44,21 @@ export default function SmoothMarquee({ children }: { children: React.ReactNode 
 
   return (
     <div 
-      className="w-full overflow-hidden relative py-12"
+      className="w-full overflow-hidden relative py-16"
       onMouseEnter={() => speedRef.current = 0}
       onMouseLeave={() => speedRef.current = 1}
       onTouchStart={() => speedRef.current = 0}
       onTouchEnd={() => speedRef.current = 1}
     >
-      {/* 👈 الارتفاع هنا ضخم (900px) ليتسع لبطاقتين فوق بعضهما براحة تامة */}
-      <div ref={trackRef} className="w-max flex gap-8 md:gap-12 px-4 h-[700px] md:h-[900px]">
+      {/* الحاوية الرئيسية بارتفاع 900px */}
+      <div ref={trackRef} className="w-max flex gap-8 md:gap-16 px-4 h-[750px] md:h-[900px]">
         
-        {/* 👈 السحر هنا: grid-flow-col-dense سيقوم بحشر البطاقات الصغيرة فوق بعضها في الفراغات! */}
-        <div className="grid grid-rows-2 grid-flow-col-dense gap-8 md:gap-12 h-full">
+        {/* السحر هنا: flex-col flex-wrap يجبر المشاريع على التكدس فوق بعضها بنفس العمود بدقة متناهية! */}
+        <div className="flex flex-col flex-wrap items-center justify-center gap-6 md:gap-10 h-full">
           {children}
         </div>
         
-        <div className="grid grid-rows-2 grid-flow-col-dense gap-8 md:gap-12 h-full">
+        <div className="flex flex-col flex-wrap items-center justify-center gap-6 md:gap-10 h-full">
           {children}
         </div>
 
