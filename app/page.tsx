@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import { ArrowUpLeft, Code2, Mail, User } from 'lucide-react'
 
-// 👈 استدعاء مكون البطاقة ثلاثية الأبعاد الجديد!
+// 👈 استدعاء المكونات التفاعلية الجديدة
 import ProjectCard3D from '@/components/ProjectCard3D'
+import SmoothMarquee from '@/components/SmoothMarquee'
 
 const GithubIcon = ({ size = 20, className = "" }) => (
   <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.8 0-1.4-.5-2.8-1.5-3.8.1-.3.7-1.8-.1-3.8 0 0-1.2-.4-3.9 1.4a12.3 12.3 0 0 0-7 0C6.1 1.6 4.9 2 4.9 2c-.8 2-.2 3.5-.1 3.8-1 1-1.5 2.4-1.5 3.8 0 5.3 3 6.5 6 6.8-.4.3-.7.9-.8 2-.2.1-.5.2-1 .2-1.5 0-2.5-1.1-3-2 0 0-.5-.9-1.5-1.1 0 0-1-.1-.1.3.8.4 1.2 1.5 1.2 1.5.7 1.9 2.8 1.9 4 1.5v2" /></svg>
@@ -30,10 +31,6 @@ export default async function Home() {
     .from('projects')
     .select('*')
     .order('created_at', { ascending: false })
-
-  // ♾️ مضاعفة مصفوفة المشاريع لضمان استمرار الشريط دون توقف (Seamless Loop)
-  // قمنا بمضاعفتها 4 مرات لضمان ملء الشاشات الكبيرة جداً
-  const marqueeProjects = projects ? [...projects, ...projects, ...projects, ...projects] : []
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/30 overflow-x-hidden">
@@ -81,44 +78,26 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* --- 🌊 قسم المشاريع (الموجة اللانهائية 3D) 🌊 --- */}
+        {/* --- 🌊 قسم المشاريع (الشبكة اللانهائية الناعمة 3D) 🌊 --- */}
         <section id="projects" className="py-24 border-t border-zinc-900 w-full overflow-hidden bg-zinc-950 relative">
           
-          {/* 🟢 ضخ كود الحركة مباشرة لضمان عملها 100% 🟢 */}
-          <style dangerouslySetInnerHTML={{
-            __html: `
-              @keyframes marquee-rtl {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(50%); }
-              }
-              .animate-marquee-rtl {
-                width: max-content;
-                animation: marquee-rtl 40s linear infinite;
-              }
-              .animate-marquee-rtl:hover {
-                animation-play-state: paused;
-              }
-            `
-          }} />
-
-          <div className="max-w-5xl mx-auto px-6 mb-16 flex items-center gap-4 relative z-20">
+          <div className="max-w-5xl mx-auto px-6 mb-12 flex items-center gap-4 relative z-20">
             <Code2 className="text-emerald-500" size={32} />
             <h2 className="text-3xl font-bold">معرض الأعمال التفاعلي</h2>
           </div>
 
-          {/* حاوية الشريط المتموج (ارتفاع ثابت 650px) */}
-          <div className="w-full relative h-[600px] md:h-[650px] flex items-center">
+          <div className="w-full relative flex items-center">
             
             {/* التدرجات اللونية (Fade Edges) لإخفاء الأطراف بجمالية */}
             <div className="absolute top-0 bottom-0 right-0 w-16 md:w-48 bg-gradient-to-l from-zinc-950 to-transparent z-20 pointer-events-none"></div>
             <div className="absolute top-0 bottom-0 left-0 w-16 md:w-48 bg-gradient-to-r from-zinc-950 to-transparent z-20 pointer-events-none"></div>
 
-            {/* المسار المتحرك (أضفنا w-max لضمان تمدد الحاوية) */}
-            <div className="flex gap-8 px-8 w-max animate-marquee-rtl h-full items-stretch relative z-10 py-10">
-              {marqueeProjects?.map((project, index) => (
-                <ProjectCard3D key={`${project.id}-${index}`} project={project} index={index} />
+            {/* 🟢 محرك التمرير الناعم السحري يحضن المشاريع 🟢 */}
+            <SmoothMarquee>
+              {projects?.map((project, index) => (
+                <ProjectCard3D key={project.id} project={project} index={index} />
               ))}
-            </div>
+            </SmoothMarquee>
 
           </div>
         </section>
