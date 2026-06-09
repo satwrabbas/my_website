@@ -1,94 +1,82 @@
 // utils/layout-engine.ts
 
-// يمكنك التبديل بين 'bento' أو 'stack' أو 'scattered' من هنا مستقبلاً
 export type LayoutMode = 'bento' | 'stack' | 'scattered';
 
-// --------------------------------------------------------
-// 1. كود الحاوية الأم (كيف تتصرف الكروت مع بعضها؟)
-// --------------------------------------------------------
 export function getContainerStyles(mode: LayoutMode) {
   switch (mode) {
     case 'bento':
-      // شبكة البينتو: ترص الكروت بجانب وفوق بعضها بذكاء لسد الفراغات
       return "grid grid-rows-2 grid-flow-col-dense items-center gap-6 md:gap-10 h-[550px] md:h-[650px]";
-    
     case 'stack':
-      // التكدس العمودي: تجبر الكروت على الاصطفاف فوق بعضها في نفس العمود
       return "flex flex-col flex-wrap justify-center gap-6 md:gap-10 h-[700px] md:h-[850px]";
-    
     case 'scattered':
-      // التناثر العشوائي: الكروت بجانب بعضها مع مسافات شاسعة لتطفو بحرية
       return "flex gap-12 md:gap-20 items-center h-[600px] md:h-[750px]";
-      
     default:
       return "flex gap-6 h-[500px]";
   }
 }
 
-// --------------------------------------------------------
-// 2. كود البطاقة الفردية (كيف يبدو شكل وحجم كل كرت؟)
-// --------------------------------------------------------
 export function getCardStyles(mode: LayoutMode, platforms: string[] = [], index: number) {
-  const isMobile = platforms.includes('Android') || platforms.includes('iOS');
+  const isMobile = platforms.includes('Android') || platforms.includes('iOS') || platforms.includes('iPhone');
   const isDesktop = platforms.includes('Windows') || platforms.includes('Web');
 
-  // القيم الافتراضية
   let gridClass = '';
-  let cardWidth = 'w-[300px]';
-  let cardHeight = 'h-[300px]';
+  let cardWidth = '';
+  let cardHeight = '';
   let transformClass = '';
 
-  // خوارزمية التناثر لمعرفة اتجاه حركة الكرت
+  // 👈 السر هنا: استخدام الـ index لصنع "عشوائية منتظمة"
+  // wVar يختار العرض، و hVar يختار الطول بشكل متعاكس لضمان عدم التكرار
+  const wVar = index % 3;
+  const hVar = (index + 1) % 3; 
   const scatterPattern = index % 4;
 
   if (mode === 'bento') {
-    // --- استراتيجية البينتو (تداخل وتفاوت) ---
     if (isDesktop && isMobile) {
       gridClass = 'row-span-2';
-      cardWidth = 'w-[320px] md:w-[480px]';
-      cardHeight = 'h-[480px] md:h-[550px]';
+      // 3 احتمالات لعرض وطول العملاق
+      cardWidth = ['w-[320px] md:w-[480px]', 'w-[300px] md:w-[440px]', 'w-[340px] md:w-[500px]'][wVar];
+      cardHeight = ['h-[380px] md:h-[450px]', 'h-[360px] md:h-[420px]', 'h-[400px] md:h-[480px]'][hVar];
     } else if (isMobile && !isDesktop) {
       gridClass = 'row-span-2';
-      cardWidth = 'w-[260px] md:w-[320px]';
-      cardHeight = 'h-[400px] md:h-[480px]';
+      // 3 احتمالات لعرض وطول الجوال
+      cardWidth = ['w-[260px] md:w-[320px]', 'w-[240px] md:w-[280px]', 'w-[280px] md:w-[340px]'][wVar];
+      cardHeight = ['h-[320px] md:h-[380px]', 'h-[300px] md:h-[350px]', 'h-[340px] md:h-[420px]'][hVar];
     } else {
       gridClass = 'row-span-1';
-      cardWidth = 'w-[300px] md:w-[420px]';
-      cardHeight = 'h-[220px] md:h-[260px]';
+      // 3 احتمالات لعرض وطول الويب
+      cardWidth = ['w-[300px] md:w-[420px]', 'w-[280px] md:w-[380px]', 'w-[320px] md:w-[460px]'][wVar];
+      cardHeight = ['h-[180px] md:h-[220px]', 'h-[160px] md:h-[200px]', 'h-[200px] md:h-[250px]'][hVar];
     }
-    // تناثر خفيف داخل خلية البينتو
     transformClass = scatterPattern % 2 === 0 ? '-translate-y-4' : 'translate-y-4';
 
   } else if (mode === 'stack') {
-    // --- استراتيجية التكدس العمودي (فوق بعض بدقة مسطرة) ---
     if (isDesktop && isMobile) {
-      cardWidth = 'w-[320px] md:w-[450px]';
-      cardHeight = 'h-[500px] md:h-[600px]';
+      cardWidth = ['w-[320px] md:w-[450px]', 'w-[300px] md:w-[420px]', 'w-[340px] md:w-[480px]'][wVar];
+      cardHeight = ['h-[400px] md:h-[480px]', 'h-[380px] md:h-[440px]', 'h-[420px] md:h-[500px]'][hVar];
     } else if (isMobile && !isDesktop) {
-      cardWidth = 'w-[280px] md:w-[320px]';
-      cardHeight = 'h-[400px] md:h-[480px]';
+      cardWidth = ['w-[280px] md:w-[320px]', 'w-[260px] md:w-[280px]', 'w-[300px] md:w-[340px]'][wVar];
+      cardHeight = ['h-[320px] md:h-[400px]', 'h-[300px] md:h-[360px]', 'h-[340px] md:h-[420px]'][hVar];
     } else {
-      cardWidth = 'w-[300px] md:w-[420px]';
-      cardHeight = 'h-[250px] md:h-[280px]';
+      cardWidth = ['w-[300px] md:w-[420px]', 'w-[280px] md:w-[380px]', 'w-[320px] md:w-[440px]'][wVar];
+      cardHeight = ['h-[200px] md:h-[240px]', 'h-[180px] md:h-[220px]', 'h-[220px] md:h-[260px]'][hVar];
     }
-    // حركة طفو وهمية لا تكسر الترتيب العمودي
+    
     if (scatterPattern === 0) transformClass = '-translate-y-8';
     else if (scatterPattern === 1) transformClass = 'translate-y-8';
     else transformClass = 'translate-y-0';
 
   } else if (mode === 'scattered') {
-    // --- استراتيجية العشوائية المطلقة (أحجام صغيرة متناثرة جداً) ---
     if (isDesktop && isMobile) {
-      cardWidth = 'w-[280px] md:w-[360px]';
-      cardHeight = 'h-[350px] md:h-[400px]';
+      cardWidth = ['w-[280px] md:w-[360px]', 'w-[260px] md:w-[340px]', 'w-[300px] md:w-[380px]'][wVar];
+      cardHeight = ['h-[280px] md:h-[320px]', 'h-[260px] md:h-[300px]', 'h-[300px] md:h-[340px]'][hVar];
     } else if (isMobile && !isDesktop) {
-      cardWidth = 'w-[220px] md:w-[260px]';
-      cardHeight = 'h-[300px] md:h-[350px]';
+      cardWidth = ['w-[220px] md:w-[260px]', 'w-[200px] md:w-[240px]', 'w-[240px] md:w-[280px]'][wVar];
+      cardHeight = ['h-[240px] md:h-[280px]', 'h-[220px] md:h-[260px]', 'h-[260px] md:h-[300px]'][hVar];
     } else {
-      cardWidth = 'w-[260px] md:w-[320px]';
-      cardHeight = 'h-[200px] md:h-[240px]';
+      cardWidth = ['w-[260px] md:w-[320px]', 'w-[240px] md:w-[300px]', 'w-[280px] md:w-[340px]'][wVar];
+      cardHeight = ['h-[160px] md:h-[200px]', 'h-[140px] md:h-[180px]', 'h-[180px] md:h-[220px]'][hVar];
     }
-    // تناثر عنيف جداً صعوداً ونزولاً
+    
     if (scatterPattern === 0) transformClass = 'self-start mt-12';
     else if (scatterPattern === 1) transformClass = 'self-end mb-12';
     else if (scatterPattern === 2) transformClass = 'self-start mt-32';
