@@ -4,92 +4,48 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image' 
-import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion' 
+import { motion } from 'framer-motion' 
 import { Smartphone, Monitor, Globe, Apple, ArrowUpLeft } from 'lucide-react'
 
+// 👈 استيراد أدوات المنطق والحركة المنفصلة
+import { getCardLayout } from '@/utils/card-layout'
+import { use3DPhysics } from '@/hooks/use-3d-physics'
+
 export default function ProjectCard3D({ project, index }: { project: any, index: number }) {
+  // حالة الـ Hover لعرض الفيديو
   const [isHovered, setIsHovered] = useState(false)
-  const shouldReduceMotion = useReducedMotion()
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-
-  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 })
-  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 })
-
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"])
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"])
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (shouldReduceMotion) return 
-    const rect = e.currentTarget.getBoundingClientRect()
-    const width = rect.width
-    const height = rect.height
-    const mouseX = e.clientX - rect.left
-    const mouseY = e.clientY - rect.top
-    const xPct = mouseX / width - 0.5
-    const yPct = mouseY / height - 0.5
-    x.set(xPct)
-    y.set(yPct)
-  }
-
-  const handleMouseLeave = () => {
-    x.set(0)
-    y.set(0)
-    setIsHovered(false)
-  }
-
-  const platforms = project.platforms || []
-  const isMobile = platforms.includes('Android') || platforms.includes('iOS') || platforms.includes('iPhone')
-  const isDesktop = platforms.includes('Windows') || platforms.includes('Web')
-
-  // --- الابعاد الدقيقة لضمان التكدس العمودي ---
-  let cardWidth = 'w-[300px]'
-  let mediaHeight = 'h-[300px]'
-
-  if (isDesktop && isMobile) {
-    // 👑 العملاق: يأخذ العمود لوحده بفضل ارتفاعه الضخم
-    cardWidth = 'w-[320px] md:w-[480px]'
-    mediaHeight = 'h-[500px] md:h-[650px]'
-  } 
-  else if (isMobile && !isDesktop) {
-    // 📱 الجوال: سيتشارك العمود مع مشروع ويب تحته أو فوقه!
-    cardWidth = 'w-[260px] md:w-[320px]'
-    mediaHeight = 'h-[400px] md:h-[500px]'
-  } 
-  else if (isDesktop && !isMobile) {
-    // 💻 الويب: يمكن أن تتكدس بطاقتان أو ثلاث على نفس الخط العمودي تماماً
-    cardWidth = 'w-[300px] md:w-[420px]'
-    mediaHeight = 'h-[250px] md:h-[300px]'
-  }
-
-  // --- خوارزمية التناثر الوهمي (Scattered Illusion) ---
-  // نستخدم translate-y لكي تطفو البطاقات للأعلى والأسفل بصرياً دون أن تكسر الخط العمودي الهندسي!
-  let translateYClass = '';
-  const scatterPattern = index % 4;
   
-  if (scatterPattern === 0) translateYClass = '-translate-y-6 md:-translate-y-10'
-  else if (scatterPattern === 1) translateYClass = 'translate-y-6 md:translate-y-10'
-  else if (scatterPattern === 2) translateYClass = '-translate-y-2 md:-translate-y-4'
-  else translateYClass = 'translate-y-2 md:translate-y-4'
+  // 1. تشغيل فيزياء الـ 3D
+  const physics = use3DPhysics()
+
+  // 2. جلب المقاسات والستايلات المناسبة
+  const platforms = project.platforms || []
+  const layout = getCardLayout(platforms, index)
 
   const isVideoDemo = project.demo_url?.match(/\.(mp4|webm)$/i)
 
+  // دالة مجمعة للتعامل مع خروج الماوس (إيقاف الفيديو + تصفير الحركة)
+  const onMouseLeave = () => {
+    physics.handleMouseLeave()
+    setIsHovered(false)
+  }
+
   return (
-    // 👈 وضعنا الطول والعرض والإزاحة الوهمية (translate) على الحاوية الأم
-    <div className={`${cardWidth} ${mediaHeight} ${translateYClass} shrink-0 relative group`} style={{ perspective: "1500px" }}>
+    <div className={`${layout.cardWidth} ${layout.mediaHeight} ${layout.translateYClass} shrink-0 relative group`} style={{ perspective: "1500px" }}>
       
       <motion.div
-        onMouseMove={handleMouseMove}
+        onMouseMove={physics.handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={handleMouseLeave}
+        onMouseLeave={onMouseLeave}
         style={{
-          rotateX: shouldReduceMotion ? 0 : rotateX, 
-          rotateY: shouldReduceMotion ? 0 : rotateY,
+          rotateX: physics.rotateX, 
+          rotateY: physics.rotateY,
           transformStyle: "preserve-3d",
         }}
         className="relative w-full h-full rounded-[2rem] border border-zinc-800/50 hover:border-emerald-500/50 bg-zinc-950 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-colors duration-500 cursor-pointer"
       >
         
+        {/* --- طبقة الفيديو والصورة الخلفية --- */}
         <div className="absolute inset-0 w-full h-full pointer-events-none rounded-[2rem] overflow-hidden bg-zinc-900">
           {project.thumbnail_url && (
             <Image 
@@ -122,8 +78,9 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
 
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent opacity-90 transition-opacity duration-500 group-hover:opacity-75 pointer-events-none rounded-[2rem]"></div>
 
+        {/* --- طبقة النصوص والأيقونات البارزة --- */}
         <div 
-          style={{ transform: shouldReduceMotion ? "none" : "translateZ(40px)" }} 
+          style={{ transform: physics.shouldReduceMotion ? "none" : "translateZ(40px)" }} 
           className="absolute inset-0 p-5 md:p-6 flex flex-col justify-end z-10 pointer-events-none"
         >
           <div className="flex justify-between items-end gap-3 pointer-events-auto">
@@ -145,7 +102,7 @@ export default function ProjectCard3D({ project, index }: { project: any, index:
 
             <Link 
               href={`/projects/${project.slug}`}
-              style={{ transform: shouldReduceMotion ? "none" : "translateZ(20px)" }}
+              style={{ transform: physics.shouldReduceMotion ? "none" : "translateZ(20px)" }}
               className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2.5 md:px-4 md:py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all duration-300 hover:scale-105 hover:border-emerald-500/50 shadow-2xl"
             >
               <span className="hidden md:inline font-medium text-xs">استكشف</span>
