@@ -1,4 +1,3 @@
-//app\globals.css
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -27,8 +26,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-
-/* إخفاء شريط التمرير الأفقي مع بقاء إمكانية التمرير */
+/* إخفاء شريط التمرير */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -37,19 +35,29 @@ body {
   scrollbar-width: none;
 }
 
-/* --- تأثير شريط التمرير اللانهائي (Infinite Marquee) --- */
-@keyframes marquee-rtl {
+/* --- محرك التمرير الجديد (اتجاهين) --- */
+@keyframes marquee-right {
   0% { transform: translateX(0); }
-  /* في المواقع العربية RTL، الحركة لليمين تكشف العناصر التي في اليسار */
-  100% { transform: translateX(50%); } 
+  100% { transform: translateX(50%); } /* في RTL يتحرك لليمين */
 }
 
-.animate-marquee-rtl {
-  width: max-content; /* ضروري لكي لا ينضغط المحتوى */
-  animation: marquee-rtl 40s linear infinite; /* 40 ثانية لدورة كاملة (يمكنك تسريعها أو إبطائها) */
+@keyframes marquee-left {
+  0% { transform: translateX(50%); }
+  100% { transform: translateX(0); } /* في RTL يتحرك لليسار */
 }
 
-/* 🛑 السر السحري: إيقاف الشريط تماماً عند لمس أي بطاقة 🛑 */
-.animate-marquee-rtl:hover {
+.animate-marquee-right {
+  width: max-content;
+  animation: marquee-right 40s linear infinite;
+}
+
+.animate-marquee-left {
+  width: max-content;
+  animation: marquee-left 40s linear infinite;
+}
+
+/* إيقاف الحركة عند تمرير الماوس */
+.animate-marquee-right:hover,
+.animate-marquee-left:hover {
   animation-play-state: paused;
 }
