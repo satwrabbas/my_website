@@ -46,14 +46,15 @@ body {
   100% { transform: translateX(0); } /* في RTL يتحرك لليسار */
 }
 
+/* 🌟 اللمسة الجمالية: اختلاف السرعات (Parallax Effect) 🌟 */
 .animate-marquee-right {
   width: max-content;
-  animation: marquee-right 40s linear infinite;
+  animation: marquee-right 45s linear infinite; /* أبطأ قليلاً لإعطاء ثقل لبطاقات الجوال */
 }
 
 .animate-marquee-left {
   width: max-content;
-  animation: marquee-left 40s linear infinite;
+  animation: marquee-left 35s linear infinite; /* أسرع قليلاً لبطاقات الويب */
 }
 
 /* إيقاف الحركة عند تمرير الماوس */
