@@ -24,7 +24,10 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
 
   return (
     <div 
-      className={`group relative rounded-3xl overflow-hidden border border-zinc-800 hover:border-emerald-500/50 transition-all duration-500 flex-shrink-0 ${cardSizeClasses}`}
+      // 🌟 السحر هنا في الكلاسات المضافة في السطر التالي 🌟
+      className={`group relative rounded-3xl overflow-hidden border border-zinc-800 transition-all duration-500 flex-shrink-0 ${cardSizeClasses} 
+      group-hover/row:opacity-40 group-hover/row:scale-[0.98] 
+      hover:!opacity-100 hover:!scale-[1.02] hover:z-20 hover:border-emerald-500/50 hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)]`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
