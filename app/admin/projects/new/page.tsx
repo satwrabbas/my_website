@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { ArrowRight, Save, Image as ImageIcon, Video, Images, X, Plus, Trash2, ListChecks, Monitor, Smartphone, Link as LinkIcon, User, Star } from 'lucide-react'
+import { ArrowRight, Save, Image as ImageIcon, Video, Images, X, Plus, Trash2, ListChecks, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
@@ -33,13 +33,16 @@ export default function NewProjectPage() {
 
   const [features, setFeatures] = useState<ProjectFeature[]>([])
   
-  const { register, handleSubmit, watch } = useForm({
+  // 🌟 استخراج setValue للتحكم باللون برمجياً وإعطاء قيمة افتراضية للون 🌟
+  const { register, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
-      platforms: [] // نجعل القيمة الافتراضية مصفوفة فارغة
+      platforms: [] as string[],
+      brand_color: '#10b981' // اللون الزمردي كقيمة افتراضية
     }
   })
 
-  // 🌟 المراقبة الحية للمنصات المختارة 🌟
+  // 🌟 المراقبة الحية للون والمنصات المختارة 🌟
+  const brandColorValue = watch('brand_color') || '#10b981'
   const selectedPlatforms = watch('platforms') || []
   const hasDesktop = selectedPlatforms.includes('Web') || selectedPlatforms.includes('Windows')
   const hasMobile = selectedPlatforms.includes('Android') || selectedPlatforms.includes('iOS')
@@ -94,7 +97,7 @@ export default function NewProjectPage() {
           tagline: data.tagline,
           description: data.description,
           tech_stack: techStackArray,
-          platforms: data.platforms || [], // حفظ المصفوفة مباشرة من الـ Checkboxes
+          platforms: data.platforms || [], 
           
           github_url: data.github_url,
           download_url: data.download_url,
@@ -110,7 +113,7 @@ export default function NewProjectPage() {
           
           status: data.status || 'Live',
           is_featured: data.is_featured || false,
-          brand_color: data.brand_color || '#10b981',
+          brand_color: data.brand_color || '#10b981', // حفظ اللون الصحيح
 
           thumbnail_url: thumbnailUrl,
           demo_url: demoUrl,
@@ -154,7 +157,6 @@ export default function NewProjectPage() {
           <div><label className="block text-zinc-400 text-sm mb-2">مقدمة المشروع (يدعم Markdown)</label><textarea {...register('description')} rows={4} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" /></div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 🌟 المنصات (Checkboxes) الذكية 🌟 */}
             <div>
               <label className="block text-emerald-400 text-sm mb-3 font-medium">المنصات المدعومة (اختر لفتح الوسائط):</label>
               <div className="flex flex-wrap gap-4">
@@ -185,7 +187,7 @@ export default function NewProjectPage() {
           </div>
         </div>
 
-        {/* --- 2. قسم الوسائط المزدوجة (إظهار شرطي الذكي) --- */}
+        {/* --- 2. قسم الوسائط المزدوجة --- */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
           <h2 className="text-xl font-bold mb-6 text-white border-b border-zinc-800 pb-4">الوسائط والمظهر</h2>
           
@@ -196,8 +198,7 @@ export default function NewProjectPage() {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            {/* 💻 إظهار وسائط الويب/ديسكتوب فقط إذا تم تحديد Web أو Windows */}
+            {/* 💻 وسائط الويب/ديسكتوب */}
             {hasDesktop && (
               <div className="space-y-4 animate-in fade-in duration-500">
                 <h3 className="text-emerald-500 font-medium flex items-center gap-2"><Monitor size={18} /> وسائط الويب/سطح المكتب (عرضية)</h3>
@@ -218,7 +219,7 @@ export default function NewProjectPage() {
               </div>
             )}
 
-            {/* 📱 إظهار وسائط الجوال فقط إذا تم تحديد Android أو iOS */}
+            {/* 📱 وسائط الجوال */}
             {hasMobile && (
               <div className="space-y-4 animate-in fade-in duration-500">
                 <h3 className="text-blue-500 font-medium flex items-center gap-2"><Smartphone size={18} /> وسائط الجوال (طولية)</h3>
@@ -245,6 +246,7 @@ export default function NewProjectPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
           <h2 className="text-xl font-bold flex items-center gap-2 text-white border-b border-zinc-800 pb-4"><Star className="text-yellow-500" /> التميز والهوية</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            
             <div>
               <label className="block text-zinc-400 text-sm mb-2">حالة المشروع</label>
               <select {...register('status')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none">
@@ -253,17 +255,30 @@ export default function NewProjectPage() {
                 <option value="Beta">Beta (نسخة تجريبية)</option>
               </select>
             </div>
+
+            {/* 🌟 إصلاح لون الهوية (توهج البطاقة) 🌟 */}
             <div>
               <label className="block text-zinc-400 text-sm mb-2">لون الهوية (توهج البطاقة)</label>
               <div className="flex gap-3">
-                <input type="color" {...register('brand_color')} defaultValue="#10b981" className="h-12 w-12 rounded-xl bg-zinc-950 border border-zinc-800 cursor-pointer" />
-                <input type="text" {...register('brand_color')} defaultValue="#10b981" className="flex-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" />
+                <input 
+                  type="color" 
+                  value={brandColorValue} 
+                  onChange={(e) => setValue('brand_color', e.target.value, { shouldDirty: true })} 
+                  className="h-12 w-12 rounded-xl bg-zinc-950 border border-zinc-800 cursor-pointer" 
+                />
+                <input 
+                  type="text" 
+                  {...register('brand_color')} 
+                  className="flex-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none uppercase" 
+                />
               </div>
             </div>
+
             <div className="flex items-center gap-3 bg-zinc-950 border border-zinc-800 p-4 rounded-xl h-12 mt-6 cursor-pointer hover:border-emerald-500 transition-colors">
               <input type="checkbox" id="is_featured" {...register('is_featured')} className="w-5 h-5 accent-emerald-500" />
               <label htmlFor="is_featured" className="text-white font-medium cursor-pointer">تثبيت كمشروع مميز (هالة دائمة)</label>
             </div>
+
           </div>
         </div>
 
@@ -282,7 +297,7 @@ export default function NewProjectPage() {
                 <div><label className="block text-zinc-400 text-sm mb-2">رابط App Store</label><input {...register('app_store_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
               </>
             )}
-            <div className="md:col-span-2"><label className="block text-zinc-400 text-sm mb-2">رابط تحميل مباشر (ملف / Setup)</label><input {...register('download_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div className="md:col-span-2"><label className="block text-zinc-400 text-sm mb-2">رابط تحميل مباشر (آخر)</label><input {...register('download_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
           </div>
         </div>
 
@@ -298,43 +313,97 @@ export default function NewProjectPage() {
         {/* --- 6. قسم النقاط الديناميكية --- */}
         <div className="bg-zinc-900 border border-emerald-500/30 rounded-3xl p-8 space-y-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+          
           <div className="flex items-center justify-between mb-2 border-b border-zinc-800 pb-6">
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2 text-white"><ListChecks className="text-emerald-500" /> بناء دراسة الحالة</h2>
               <p className="text-zinc-400 text-sm mt-1">أضف نقاط الشرح تباعاً، مع إرفاق فيديو أو صور لكل نقطة.</p>
             </div>
-            <button type="button" onClick={addFeature} disabled={isSubmitting} className={`bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border border-zinc-700 font-medium ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <button 
+              type="button" 
+              onClick={addFeature}
+              disabled={isSubmitting}
+              className={`bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border border-zinc-700 font-medium ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
               <Plus size={18} /> إضافة نقطة
             </button>
           </div>
+
           {features.length === 0 ? (
             <div className="text-center py-12 text-zinc-500">لم تقم بإضافة أي نقاط شرح بعد.</div>
           ) : (
             <div className="space-y-12">
               {features.map((feature, index) => (
                 <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 relative group">
-                  <div className="absolute -top-3 -right-3 bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg">{index + 1}</div>
-                  <button type="button" onClick={() => removeFeature(index)} disabled={isSubmitting} className={`absolute -top-3 -left-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg ${isSubmitting ? 'hidden' : ''}`}><Trash2 size={16} /></button>
-                  <div className="space-y-4 mb-6">
-                    <input value={feature.title} onChange={(e) => updateFeatureText(index, 'title', e.target.value)} placeholder="عنوان الميزة" className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none font-bold text-lg" required />
-                    <textarea value={feature.content} onChange={(e) => updateFeatureText(index, 'content', e.target.value)} placeholder="شرح الميزة..." rows={4} className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" required />
+                  <div className="absolute -top-3 -right-3 bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-lg">
+                    {index + 1}
                   </div>
+                  
+                  <button 
+                    type="button" 
+                    onClick={() => removeFeature(index)}
+                    disabled={isSubmitting}
+                    className={`absolute -top-3 -left-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg ${isSubmitting ? 'hidden' : ''}`}
+                    title="حذف هذه النقطة"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+
+                  <div className="space-y-4 mb-6">
+                    <input 
+                      value={feature.title}
+                      onChange={(e) => updateFeatureText(index, 'title', e.target.value)}
+                      placeholder="عنوان الميزة (مثال: الأداء الفائق بدون إنترنت)"
+                      className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:border-emerald-500 outline-none font-bold text-lg"
+                      required
+                    />
+                    <textarea 
+                      value={feature.content}
+                      onChange={(e) => updateFeatureText(index, 'content', e.target.value)}
+                      placeholder="اشرح الميزة أو التحدي البرمجي هنا (يدعم Markdown)..."
+                      rows={4}
+                      className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:border-emerald-500 outline-none resize-y"
+                      required
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-zinc-800">
                     <div className="lg:col-span-1 border-2 border-dashed border-zinc-800 rounded-xl p-4 flex flex-col items-center justify-center text-center relative h-32 hover:border-emerald-500/50 transition-colors">
-                      {feature.videoPreview ? <video src={feature.videoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-lg" /> : <><Video size={24} className="text-zinc-600 mb-2" /><span className="text-zinc-500 text-xs font-medium">فيديو (اختياري)</span></>}
-                      <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 hover:opacity-100 transition-opacity cursor-pointer text-white font-medium text-sm rounded-xl">اختر فيديو<input type="file" accept="video/mp4,video/webm" onChange={(e) => handleFeatureVideo(index, e)} className="hidden" /></label>
+                      {feature.videoPreview ? (
+                        <video src={feature.videoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <>
+                          <Video size={24} className="text-zinc-600 mb-2" />
+                          <span className="text-zinc-500 text-xs font-medium">فيديو الميزة (اختياري)</span>
+                        </>
+                      )}
+                      <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 hover:opacity-100 transition-opacity cursor-pointer text-white font-medium text-sm rounded-xl">
+                        اختر فيديو
+                        <input type="file" accept="video/mp4,video/webm" onChange={(e) => handleFeatureVideo(index, e)} className="hidden" />
+                      </label>
                     </div>
+
                     <div className="lg:col-span-2 border-2 border-dashed border-zinc-800 rounded-xl p-4 flex flex-col justify-center relative min-h-[8rem]">
                       <div className="flex items-center justify-between mb-3 w-full absolute top-0 left-0 p-3">
-                        <span className="text-zinc-500 text-xs font-medium">صور الميزة</span>
-                        <label className="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1 rounded-lg text-xs transition-colors flex items-center gap-1"><Images size={14} /> أضف صور<input type="file" accept="image/*" multiple onChange={(e) => handleFeatureImages(index, e)} className="hidden" /></label>
+                        <span className="text-zinc-500 text-xs font-medium">صور الميزة (اختياري)</span>
+                        <label className="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1 rounded-lg text-xs transition-colors flex items-center gap-1">
+                          <Images size={14} /> أضف صور
+                          <input type="file" accept="image/*" multiple onChange={(e) => handleFeatureImages(index, e)} className="hidden" />
+                        </label>
                       </div>
+                      
                       {feature.imageFiles.length > 0 && (
                         <div className="grid grid-cols-3 gap-2 mt-6 w-full">
                           {feature.imageFiles.map((img, imgIndex) => (
                             <div key={imgIndex} className="relative group/img rounded-md overflow-hidden h-16 border border-zinc-700">
-                              <img src={img.url} className="w-full h-full object-cover" />
-                              <button type="button" onClick={() => removeFeatureImage(index, imgIndex)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-opacity"><X size={10} /></button>
+                              <img src={img.url} alt="Feature snapshot" className="w-full h-full object-cover" />
+                              <button 
+                                type="button" 
+                                onClick={() => removeFeatureImage(index, imgIndex)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                              >
+                                <X size={10} />
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -349,7 +418,7 @@ export default function NewProjectPage() {
 
         <button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl px-4 py-5 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)]">
           <Save size={24} className={isSubmitting ? "animate-spin" : ""} />
-          <span>{isSubmitting ? 'جاري بناء ورفع دراسة الحالة الكاملة...' : 'نشر المشروع التفاعلي'}</span>
+          <span>{isSubmitting ? 'جاري بناء ورفع المشروع...' : 'نشر المشروع'}</span>
         </button>
       </form>
     </div>
