@@ -1,206 +1,391 @@
-// app/projects/[slug]/page.tsx
-import { notFound } from 'next/navigation'
+// app/admin/projects/[id]/edit/page.tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { ArrowRight, Save, Image as ImageIcon, Video, Images, X, Plus, Trash2, ListChecks, Loader2, Monitor, Smartphone, Link as LinkIcon, User, Star } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image' // 👈
-import { ArrowRight, Smartphone, Monitor, Download, ExternalLink, PlayCircle, Globe, Apple } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { createClient } from '@/lib/supabase'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const { slug } = await params
-  const { data: project } = await supabase.from('projects').select('title, tagline').eq('slug', slug).single()
-  
-  if (!project) return { title: 'المشروع غير موجود' }
-  
-  return {
-    title: `${project.title} | Abbas Satwr`,
-    description: project.tagline,
-  }
+interface ProjectFeature {
+  title: string;
+  content: string;
+  videoFile: File | null;
+  videoPreview: string | null;
+  imageFiles: { file: File | null; url: string }[];
 }
 
-export default async function ProjectDetailsPage({ params }: { params: { slug: string } }) {
-  const { slug } = await params
+export default function EditProjectPage() {
+  const router = useRouter()
+  const params = useParams()
+  const projectId = params.id as string
+  const supabase = createClient()
+  
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // وسائط الويب/سطح المكتب
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
+  const [demoFile, setDemoFile] = useState<File | null>(null)
+  const [demoPreview, setDemoPreview] = useState<string | null>(null)
 
-  const { data: project, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+  // 📱 وسائط الجوال [الجديدة]
+  const [mobileThumbnailFile, setMobileThumbnailFile] = useState<File | null>(null)
+  const [mobileThumbnailPreview, setMobileThumbnailPreview] = useState<string | null>(null)
+  const [mobileDemoFile, setMobileDemoFile] = useState<File | null>(null)
+  const [mobileDemoPreview, setMobileDemoPreview] = useState<string | null>(null)
 
-  if (error || !project) {
-    notFound()
+  const [features, setFeatures] = useState<ProjectFeature[]>([])
+  
+  const { register, handleSubmit, reset } = useForm()
+
+  // --- جلب بيانات المشروع القديمة ---
+  useEffect(() => {
+    const fetchProject = async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', projectId)
+        .single()
+
+      if (data) {
+        // تعبئة البيانات النصية والحقول الجديدة
+        reset({
+          title: data.title,
+          slug: data.slug,
+          tagline: data.tagline,
+          description: data.description,
+          tech_stack: data.tech_stack?.join(', ') || '',
+          platforms: data.platforms?.join(', ') || '',
+          
+          // الحقول الجديدة
+          github_url: data.github_url || '',
+          download_url: data.download_url || '',
+          live_url: data.live_url || '',
+          play_store_url: data.play_store_url || '',
+          app_store_url: data.app_store_url || '',
+          
+          role: data.role || '',
+          category: data.category || '',
+          duration: data.duration || '',
+          client_name: data.client_name || '',
+          testimonial: data.testimonial || '',
+          
+          status: data.status || 'Live',
+          is_featured: data.is_featured || false,
+          brand_color: data.brand_color || '#10b981',
+        })
+
+        // تعبئة الوسائط
+        setThumbnailPreview(data.thumbnail_url)
+        setDemoPreview(data.demo_url)
+        setMobileThumbnailPreview(data.mobile_thumbnail_url)
+        setMobileDemoPreview(data.mobile_demo_url)
+
+        // تعبئة النقاط التفاعلية (Features)
+        if (data.features && data.features.length > 0) {
+          const loadedFeatures: ProjectFeature[] = data.features.map((feat: any) => ({
+            title: feat.title,
+            content: feat.content,
+            videoFile: null,
+            videoPreview: feat.video_url || null,
+            imageFiles: feat.image_urls ? feat.image_urls.map((url: string) => ({ file: null, url })) : [],
+          }))
+          setFeatures(loadedFeatures)
+        }
+      }
+      setIsLoading(false)
+    }
+    fetchProject()
+  }, [projectId, reset, supabase])
+
+  // --- دوال الملفات الأساسية ---
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) { setThumbnailFile(e.target.files[0]); setThumbnailPreview(URL.createObjectURL(e.target.files[0])) }
+  }
+  const handleDemoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) { setDemoFile(e.target.files[0]); setDemoPreview(URL.createObjectURL(e.target.files[0])) }
+  }
+  const handleMobileThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) { setMobileThumbnailFile(e.target.files[0]); setMobileThumbnailPreview(URL.createObjectURL(e.target.files[0])) }
+  }
+  const handleMobileDemoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) { setMobileDemoFile(e.target.files[0]); setMobileDemoPreview(URL.createObjectURL(e.target.files[0])) }
   }
 
-  const features = project.features || []
+  // --- دوال الميزات (Features) ---
+  const addFeature = () => setFeatures([...features, { title: '', content: '', videoFile: null, videoPreview: null, imageFiles: [] }])
+  const removeFeature = (index: number) => setFeatures(features.filter((_, i) => i !== index))
+  const updateFeatureText = (index: number, field: 'title' | 'content', value: string) => { const updated = [...features]; updated[index][field] = value; setFeatures(updated) }
+  const handleFeatureVideo = (index: number, e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { const updated = [...features]; updated[index].videoFile = e.target.files[0]; updated[index].videoPreview = URL.createObjectURL(e.target.files[0]); setFeatures(updated) } }
+  const handleFeatureImages = (index: number, e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files) { const filesArray = Array.from(e.target.files).map(file => ({ file, url: URL.createObjectURL(file) })); const updated = [...features]; updated[index].imageFiles = [...updated[index].imageFiles, ...filesArray]; setFeatures(updated) } }
+  const removeFeatureImage = (featureIndex: number, imageIndex: number) => { const updated = [...features]; updated[featureIndex].imageFiles = updated[featureIndex].imageFiles.filter((_, i) => i !== imageIndex); setFeatures(updated) }
+
+  // --- دالة الرفع ---
+  const uploadFile = async (file: File, folder: string) => {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${folder}/${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+    const { error } = await supabase.storage.from('project-assets').upload(fileName, file)
+    if (error) throw error
+    const { data } = supabase.storage.from('project-assets').getPublicUrl(fileName)
+    return data.publicUrl
+  }
+
+  // --- دالة الحفظ (Submit) ---
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true)
+
+    try {
+      // 1. رفع الوسائط الجديدة أو الاحتفاظ بالقديمة
+      const finalThumbnailUrl = thumbnailFile ? await uploadFile(thumbnailFile, 'thumbnails') : thumbnailPreview
+      const finalDemoUrl = demoFile ? await uploadFile(demoFile, 'demos') : demoPreview
+      const finalMobileThumbnailUrl = mobileThumbnailFile ? await uploadFile(mobileThumbnailFile, 'thumbnails/mobile') : mobileThumbnailPreview
+      const finalMobileDemoUrl = mobileDemoFile ? await uploadFile(mobileDemoFile, 'demos/mobile') : mobileDemoPreview
+      
+      // 2. معالجة النقاط (Features)
+      const processedFeatures = await Promise.all(
+        features.map(async (feature) => {
+          const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : feature.videoPreview;
+          const image_urls = await Promise.all(
+            feature.imageFiles.map(async (img) => {
+              if (img.file) return await uploadFile(img.file, 'features/images')
+              return img.url 
+            })
+          );
+          return { title: feature.title, content: feature.content, video_url, image_urls }
+        })
+      )
+
+      const techStackArray = data.tech_stack ? data.tech_stack.split(',').map((s: string) => s.trim()) : []
+      const platformsArray = data.platforms ? data.platforms.split(',').map((s: string) => s.trim()) : []
+
+      // 3. التحديث في قاعدة البيانات
+      const { error } = await supabase.from('projects').update({
+        title: data.title,
+        slug: data.slug,
+        tagline: data.tagline,
+        description: data.description,
+        tech_stack: techStackArray,
+        platforms: platformsArray,
+        
+        // الروابط
+        github_url: data.github_url,
+        download_url: data.download_url,
+        live_url: data.live_url,
+        play_store_url: data.play_store_url,
+        app_store_url: data.app_store_url,
+        
+        // التفاصيل
+        role: data.role,
+        category: data.category,
+        duration: data.duration,
+        client_name: data.client_name,
+        testimonial: data.testimonial,
+        
+        // الحالة
+        status: data.status,
+        is_featured: data.is_featured,
+        brand_color: data.brand_color,
+
+        // الوسائط
+        thumbnail_url: finalThumbnailUrl,
+        demo_url: finalDemoUrl,
+        mobile_thumbnail_url: finalMobileThumbnailUrl,
+        mobile_demo_url: finalMobileDemoUrl,
+        
+        features: processedFeatures,
+      }).eq('id', projectId)
+
+      if (error) throw error
+      router.push('/admin/projects')
+    } catch (error: any) {
+      alert('حدث خطأ أثناء التعديل: ' + error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (isLoading) return <div className="text-zinc-400 p-8 text-center animate-pulse">جاري جلب بيانات المشروع...</div>
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-32">
+    <div className="max-w-5xl mx-auto pb-20 relative">
       
-      <header className="max-w-5xl mx-auto px-6 py-8">
-        <Link href="/#projects" className="inline-flex items-center gap-2 text-zinc-500 hover:text-emerald-400 transition-colors">
-          <ArrowRight size={20} />
-          <span>العودة للأعمال</span>
+      {/* 🔴 شاشة التحميل الشفافة 🔴 */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+          <Loader2 size={64} className="animate-spin text-emerald-500 mb-6" />
+          <h2 className="text-2xl font-bold mb-2">جاري معالجة ورفع الملفات...</h2>
+          <p className="text-zinc-400">يرجى الانتظار وعدم إغلاق الصفحة.</p>
+        </div>
+      )}
+
+      <div className="flex items-center gap-4 mb-8">
+        <Link href="/admin/projects" className="text-zinc-500 hover:text-white transition-colors">
+          <ArrowRight size={24} />
         </Link>
-      </header>
+        <h1 className="text-3xl font-bold">تعديل المشروع</h1>
+      </div>
 
-      <main className="max-w-5xl mx-auto px-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         
-        <div className="mb-20 text-center md:text-right">
-          <div className="flex justify-center md:justify-start gap-3 text-emerald-500 mb-6">
-            {project.platforms?.includes('Android') && <Smartphone size={28} title="Android" />}
-            {(project.platforms?.includes('iOS') || project.platforms?.includes('iPhone')) && <Apple size={28} title="iOS" />}
-            {project.platforms?.includes('Windows') && <Monitor size={28} title="Windows" />}
-            {project.platforms?.includes('Web') && <Globe size={28} title="Web" />}
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
-            {project.title}
-          </h1>
-          <p className="text-xl md:text-2xl text-zinc-400 mb-12 leading-relaxed max-w-3xl">
-            {project.tagline}
-          </p>
-
-          {project.thumbnail_url && (
-            // 👈 إعطاء ارتفاع ثابت متجاوب لتطبيق خاصية fill بشكل صحيح
-            <div className="w-full h-[300px] md:h-[500px] lg:h-[700px] rounded-[2rem] overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative">
-              <Image 
-                src={project.thumbnail_url} 
-                alt={project.title} 
-                fill
-                priority // 👈 يخبر Next.js أن هذه الصورة مهمة جداً ويجب تحميلها فوراً
-                sizes="(max-width: 1024px) 100vw, 1024px"
-                className="object-cover object-top"
-              />
+        {/* --- 1. قسم الوسائط المزدوجة --- */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+          <h2 className="text-xl font-bold mb-6 text-white border-b border-zinc-800 pb-4">المظهر والوسائط</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h3 className="text-emerald-500 font-medium flex items-center gap-2"><Monitor size={18} /> وسائط الويب/سطح المكتب</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group">
+                  {thumbnailPreview ? <img src={thumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الغلاف<input type="file" accept="image/*" onChange={handleThumbnailChange} className="hidden" /></label>
+                </div>
+                <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group">
+                  {demoPreview ? (demoPreview.match(/\.(mp4|webm)$/i) ? <video src={demoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> : <img src={demoPreview} className="w-full h-full object-cover rounded-xl" />) : <Video size={28} className="text-zinc-500 mb-2" />}
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الفيديو<input type="file" accept="video/mp4,video/webm,image/*" onChange={handleDemoChange} className="hidden" /></label>
+                </div>
+              </div>
             </div>
-          )}
+            <div className="space-y-4">
+              <h3 className="text-blue-500 font-medium flex items-center gap-2"><Smartphone size={18} /> وسائط الجوال (اختياري)</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group">
+                  {mobileThumbnailPreview ? <img src={mobileThumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الغلاف<input type="file" accept="image/*" onChange={handleMobileThumbnailChange} className="hidden" /></label>
+                </div>
+                <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group">
+                  {mobileDemoPreview ? (mobileDemoPreview.match(/\.(mp4|webm)$/i) ? <video src={mobileDemoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> : <img src={mobileDemoPreview} className="w-full h-full object-cover rounded-xl" />) : <Video size={28} className="text-zinc-500 mb-2" />}
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الفيديو<input type="file" accept="video/mp4,video/webm,image/*" onChange={handleMobileDemoChange} className="hidden" /></label>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
-          <aside className="lg:col-span-4 space-y-8 order-2 lg:order-1">
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 sticky top-8 backdrop-blur-sm">
-              <div className="mb-8">
-                <h3 className="text-white font-bold mb-4 border-b border-zinc-800 pb-4 text-lg">التقنيات المستخدمة</h3>
-                <div className="flex flex-wrap gap-2">
-                  {project.tech_stack?.map((tech: string, i: number) => (
-                    <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-sm px-4 py-2 rounded-xl">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
+        {/* --- 2. تفاصيل المشروع الأساسية --- */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
+          <h2 className="text-xl font-bold text-white border-b border-zinc-800 pb-4 mb-6">المعلومات الأساسية</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div><label className="block text-zinc-400 text-sm mb-2">اسم المشروع</label><input {...register('title', { required: true })} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">رابط الصفحة (Slug)</label><input {...register('slug', { required: true })} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+          </div>
+          <div><label className="block text-zinc-400 text-sm mb-2">وصف مختصر (يظهر في البطاقة)</label><input {...register('tagline', { required: true })} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+          <div><label className="block text-zinc-400 text-sm mb-2">مقدمة المشروع (يدعم Markdown)</label><textarea {...register('description')} rows={4} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" /></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div><label className="block text-zinc-400 text-sm mb-2">المنصات (مثل: Web, Android)</label><input {...register('platforms')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">التقنيات (مثل: React, Flutter)</label><input {...register('tech_stack')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">تصنيف المشروع (Category)</label><input {...register('category')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-zinc-800">
+            <div><label className="block text-zinc-400 text-sm mb-2">دورك في المشروع (Role)</label><input {...register('role')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">مدة الإنجاز (Duration)</label><input {...register('duration')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+          </div>
+        </div>
 
-              <div className="mb-8">
-                <h3 className="text-white font-bold mb-4 border-b border-zinc-800 pb-4 text-lg">المنصات</h3>
-                <div className="flex flex-wrap gap-2">
-                  {project.platforms?.map((platform: string, i: number) => (
-                    <span key={i} className="text-zinc-300 font-medium px-3 py-1 border-r-2 border-emerald-500 pr-3">
-                      {platform}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 pt-4">
-                {project.download_url && (
-                  <Link 
-                    href={project.download_url}
-                    target="_blank"
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl px-4 py-4 flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-900/20"
-                  >
-                    <Download size={20} />
-                    <span>تحميل التطبيق</span>
-                  </Link>
-                )}
-                {project.github_url && (
-                  <Link 
-                    href={project.github_url}
-                    target="_blank"
-                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl px-4 py-4 flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <ExternalLink size={20} />
-                    <span>استعراض الكود المصدري</span>
-                  </Link>
-                )}
+        {/* --- 3. الحالة والتميز ولون الهوية --- */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-white border-b border-zinc-800 pb-4"><Star className="text-yellow-500" /> التميز والهوية</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <div>
+              <label className="block text-zinc-400 text-sm mb-2">حالة المشروع</label>
+              <select {...register('status')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none">
+                <option value="Live">Live (مكتمل)</option>
+                <option value="In Progress">In Progress (قيد التطوير)</option>
+                <option value="Beta">Beta (نسخة تجريبية)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-zinc-400 text-sm mb-2">لون الهوية (توهج البطاقة)</label>
+              <div className="flex gap-3">
+                <input type="color" {...register('brand_color')} className="h-12 w-12 rounded-xl bg-zinc-950 border border-zinc-800 cursor-pointer" />
+                <input type="text" {...register('brand_color')} className="flex-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" />
               </div>
             </div>
-          </aside>
+            <div className="flex items-center gap-3 bg-zinc-950 border border-zinc-800 p-4 rounded-xl h-12 mt-6 cursor-pointer hover:border-emerald-500 transition-colors">
+              <input type="checkbox" id="is_featured" {...register('is_featured')} className="w-5 h-5 accent-emerald-500" />
+              <label htmlFor="is_featured" className="text-white font-medium cursor-pointer">تثبيت كمشروع مميز</label>
+            </div>
+          </div>
+        </div>
 
-          <article className="lg:col-span-8 order-1 lg:order-2">
-            
-            {project.description && (
-              <div className="prose prose-invert prose-emerald max-w-none prose-lg prose-headings:font-bold prose-p:leading-relaxed mb-20 text-zinc-300">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {project.description}
-                </ReactMarkdown>
-              </div>
-            )}
+        {/* --- 4. الروابط المباشرة والمتاجر --- */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-white border-b border-zinc-800 pb-4"><LinkIcon className="text-zinc-400" /> الروابط والمتاجر</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div><label className="block text-zinc-400 text-sm mb-2">رابط الموقع المباشر (Live URL)</label><input {...register('live_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">الكود المصدري (GitHub)</label><input {...register('github_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">رابط Google Play</label><input {...register('play_store_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">رابط App Store</label><input {...register('app_store_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div className="md:col-span-2"><label className="block text-zinc-400 text-sm mb-2">رابط تحميل مباشر (آخر)</label><input {...register('download_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+          </div>
+        </div>
 
-            {features.length > 0 && (
-              <div className="space-y-32">
-                {features.map((feature: any, index: number) => (
-                  <section key={index} className="relative">
-                    
-                    <div className="absolute -top-16 -right-8 text-[10rem] font-black text-zinc-800/30 select-none pointer-events-none z-0">
-                      {String(index + 1).padStart(2, '0')}
+        {/* --- 5. العميل والتقييم --- */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-white border-b border-zinc-800 pb-4"><User className="text-zinc-400" /> معلومات العميل (اختياري)</h2>
+          <div className="grid grid-cols-1 gap-6">
+            <div><label className="block text-zinc-400 text-sm mb-2">اسم العميل أو الشركة</label><input {...register('client_name')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div><label className="block text-zinc-400 text-sm mb-2">رأي العميل (Testimonial)</label><textarea {...register('testimonial')} rows={3} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" /></div>
+          </div>
+        </div>
+
+        {/* --- 6. قسم النقاط الديناميكية --- */}
+        <div className="bg-zinc-900 border border-emerald-500/30 rounded-3xl p-8 space-y-8 relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2 border-b border-zinc-800 pb-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-white"><ListChecks className="text-emerald-500" /> تعديل دراسة الحالة</h2>
+            <button type="button" onClick={addFeature} disabled={isSubmitting} className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 border border-zinc-700">
+              <Plus size={18} /> إضافة نقطة
+            </button>
+          </div>
+
+          {features.length === 0 ? (
+            <div className="text-center py-12 text-zinc-500">لم تقم بإضافة أي نقاط شرح بعد.</div>
+          ) : (
+            <div className="space-y-12">
+              {features.map((feature, index) => (
+                <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 relative group">
+                  <div className="absolute -top-3 -right-3 bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">{index + 1}</div>
+                  <button type="button" onClick={() => removeFeature(index)} disabled={isSubmitting} className="absolute -top-3 -left-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 shadow-lg"><Trash2 size={16} /></button>
+
+                  <div className="space-y-4 mb-6">
+                    <input value={feature.title} onChange={(e) => updateFeatureText(index, 'title', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none font-bold text-lg" required />
+                    <textarea value={feature.content} onChange={(e) => updateFeatureText(index, 'content', e.target.value)} rows={4} className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" required />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-zinc-800">
+                    <div className="lg:col-span-1 border-2 border-dashed border-zinc-800 rounded-xl p-4 flex flex-col items-center justify-center relative h-32 group/vid">
+                      {feature.videoPreview ? (feature.videoPreview.match(/\.(mp4|webm)$/i) ? <video src={feature.videoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-lg" /> : <img src={feature.videoPreview} className="w-full h-full object-cover rounded-lg" />) : <Video size={24} className="text-zinc-600 mb-2" />}
+                      <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover/vid:opacity-100 cursor-pointer text-white font-medium text-sm rounded-xl">تغيير<input type="file" accept="video/mp4,video/webm,image/*" onChange={(e) => handleFeatureVideo(index, e)} className="hidden" /></label>
                     </div>
 
-                    <div className="relative z-10">
-                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
-                        {feature.title}
-                      </h3>
-                      
-                      <div className="prose prose-invert prose-emerald max-w-none prose-lg text-zinc-400 mb-10 leading-relaxed">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {feature.content}
-                        </ReactMarkdown>
+                    <div className="lg:col-span-2 border-2 border-dashed border-zinc-800 rounded-xl p-4 relative min-h-[8rem]">
+                      <div className="flex justify-between w-full absolute top-0 left-0 p-3">
+                        <span className="text-zinc-500 text-xs font-medium">صور النقطة</span>
+                        <label className="cursor-pointer bg-zinc-800 text-white px-3 py-1 rounded-lg text-xs flex items-center gap-1"><Images size={14} /> إضافة<input type="file" accept="image/*" multiple onChange={(e) => handleFeatureImages(index, e)} className="hidden" /></label>
                       </div>
-
-                      {feature.video_url && (
-                        <div className="rounded-3xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl mb-8">
-                          <video 
-                            src={feature.video_url} 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline
-                            controls
-                            className="w-full h-auto max-h-[600px] object-cover"
-                          />
-                        </div>
-                      )}
-
-                      {feature.image_urls && feature.image_urls.length > 0 && (
-                        <div className={`grid gap-4 ${feature.image_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-2'}`}>
-                          {feature.image_urls.map((imgUrl: string, imgIndex: number) => (
-                            // 👈 استخدام aspect-video لضمان أبعاد متناسقة للصور
-                            <div key={imgIndex} className="relative aspect-video rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group">
-                              <Image 
-                                src={imgUrl} 
-                                alt={`${feature.title} - لقطة ${imgIndex + 1}`} 
-                                fill
-                                sizes="(max-width: 768px) 100vw, 50vw"
-                                className="object-cover group-hover:scale-105 transition-transform duration-700" 
-                              />
+                      {feature.imageFiles.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2 mt-8 w-full">
+                          {feature.imageFiles.map((img, imgIndex) => (
+                            <div key={imgIndex} className="relative group/img rounded-md h-16 border border-zinc-700">
+                              <img src={img.url} className="w-full h-full object-cover" />
+                              <button type="button" onClick={() => removeFeatureImage(index, imgIndex)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100"><X size={10} /></button>
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
-                  </section>
-                ))}
-              </div>
-            )}
-            
-          </article>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </main>
+
+        <button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl px-4 py-5 flex items-center justify-center gap-2 text-lg shadow-lg disabled:opacity-50">
+          <Save size={24} className={isSubmitting ? "animate-spin" : ""} /><span>{isSubmitting ? 'جاري التحديث...' : 'تحديث المشروع'}</span>
+        </button>
+      </form>
     </div>
   )
 }
