@@ -18,7 +18,6 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
 
   // 2. معالجة الوسائط الذكية (الصور والفيديوهات المخصصة)
   const isMobileType = type === 'mobile'
-  // إذا كان الشريط للجوال، ابحث عن صورة الجوال أولاً، وإلا استخدم العادية. والعكس صحيح.
   const activeThumbnail = isMobileType ? (project.mobile_thumbnail_url || project.thumbnail_url) : project.thumbnail_url
   const activeDemo = isMobileType ? (project.mobile_demo_url || project.demo_url) : project.demo_url
   
@@ -33,9 +32,9 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
   const brandColor = project.brand_color || '#10b981' // اللون الزمردي هو الافتراضي
   const isFeatured = project.is_featured === true
   
-  // إذا كان مميزاً، اجعله ينبض باستمرار، وإلا اجعل التوهج يظهر فقط عند التمرير
+  // توهج الإطار الخارجي للبطاقة
   const glowStyle = isFeatured && !isHovered
-    ? `0 0 20px -5px ${brandColor}40` // 40 تعني شفافية 25% بالـ HEX
+    ? `0 0 20px -5px ${brandColor}40` 
     : isHovered 
       ? `0 0 40px -10px ${brandColor}60` 
       : 'none'
@@ -66,7 +65,7 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
         </div>
       )}
 
-      {/* 🌟 شارة "مميز" (اختيارية، إذا أردت إظهار كلمة مميز) 🌟 */}
+      {/* 🌟 شارة "مميز" 🌟 */}
       {isFeatured && !isNotLive && (
         <div className="absolute top-4 right-4 z-30 bg-zinc-900/80 backdrop-blur-md text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg border" style={{ borderColor: `${brandColor}50`, color: brandColor }}>
           <span className="relative flex h-2 w-2">
@@ -99,18 +98,30 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
             )}
           </div>
         )}
+
+        {/* ✨ السحر الجديد: إضاءة الصورة (Image Glow) ✨ */}
+        {/* هذه الطبقة تسلط ضوءاً ملوناً من الأعلى على الصورة باستخدام mix-blend-screen */}
+        <div 
+          className={`absolute inset-0 pointer-events-none transition-all duration-700 z-10 mix-blend-screen
+          ${isFeatured && !isHovered ? 'opacity-50 animate-pulse-slow' : 'opacity-0 group-hover:opacity-80'}`}
+          style={{
+            background: `radial-gradient(circle at 50% 0%, ${brandColor}80 0%, transparent 60%)`
+          }}
+        />
       </div>
 
-      {/* التدرج اللوني السفلي يعتمد قليلاً على لون البراند للحصول على دمج مثالي */}
+      {/* التدرج اللوني السفلي: قمنا بدمج لون الهوية بنسبة خفيفة جداً (10%) في المنتصف ليعطي تناغماً مذهلاً */}
       <div 
-        className="absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-80 pointer-events-none"
-        style={{ background: `linear-gradient(to top, #09090b 10%, transparent 80%)` }}
+        className="absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-95 pointer-events-none z-10"
+        style={{ 
+          background: `linear-gradient(to top, #09090b 15%, ${brandColor}10 50%, transparent 90%)` 
+        }}
       ></div>
 
-      <div className="relative h-full flex flex-col justify-end p-5 md:p-6 z-10">
+      <div className="relative h-full flex flex-col justify-end p-5 md:p-6 z-20">
         <div className="flex justify-between items-end gap-3">
           <div className="flex-1">
-            <div className="flex gap-1.5 mb-2 drop-shadow-md" style={{ color: brandColor }}>
+            <div className="flex gap-1.5 mb-2 drop-shadow-md transition-colors duration-300" style={{ color: brandColor }}>
               {hasAndroid && <Smartphone size={18} />}
               {hasIOS && <Apple size={18} />}
               {hasWindows && <Monitor size={18} />}
@@ -128,9 +139,12 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
           <Link 
             href={`/projects/${project.slug}`}
             className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-3 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
-            style={{ borderColor: isHovered ? `${brandColor}50` : 'rgba(255,255,255,0.1)' }}
+            style={{ 
+              borderColor: isHovered || isFeatured ? `${brandColor}50` : 'rgba(255,255,255,0.1)',
+              boxShadow: isHovered ? `0 0 20px -5px ${brandColor}50` : 'none'
+            }}
           >
-            <ArrowUpLeft size={20} style={{ color: isHovered ? brandColor : 'white', transition: 'color 0.3s' }} />
+            <ArrowUpLeft size={20} style={{ color: isHovered || isFeatured ? brandColor : 'white', transition: 'color 0.3s' }} />
           </Link>
         </div>
       </div>
