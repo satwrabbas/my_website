@@ -39,13 +39,16 @@ export default function EditProjectPage() {
 
   const [features, setFeatures] = useState<ProjectFeature[]>([])
   
-  const { register, handleSubmit, reset, watch } = useForm({
+  // 🌟 استخراج setValue للتحكم برمجياً في الحقول 🌟
+  const { register, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: {
-      platforms: [] as string[]
+      platforms: [] as string[],
+      brand_color: '#10b981'
     }
   })
 
-  // 🌟 المراقبة الحية للمنصات المختارة 🌟
+  // 🌟 المراقبة الحية للون والمنصات المختارة 🌟
+  const brandColorValue = watch('brand_color') || '#10b981' // مراقبة اللون
   const selectedPlatforms = watch('platforms') || []
   const hasDesktop = selectedPlatforms.includes('Web') || selectedPlatforms.includes('Windows')
   const hasMobile = selectedPlatforms.includes('Android') || selectedPlatforms.includes('iOS')
@@ -67,7 +70,7 @@ export default function EditProjectPage() {
           tagline: data.tagline,
           description: data.description,
           tech_stack: data.tech_stack?.join(', ') || '',
-          platforms: data.platforms || [], // 👈 نمرر المصفوفة مباشرة للـ Checkboxes
+          platforms: data.platforms || [], 
           
           github_url: data.github_url || '',
           download_url: data.download_url || '',
@@ -83,7 +86,7 @@ export default function EditProjectPage() {
           
           status: data.status || 'Live',
           is_featured: data.is_featured || false,
-          brand_color: data.brand_color || '#10b981',
+          brand_color: data.brand_color || '#10b981', // تعبئة اللون المحفوظ
         })
 
         // تعبئة الوسائط
@@ -138,13 +141,11 @@ export default function EditProjectPage() {
     setIsSubmitting(true)
 
     try {
-      // 1. رفع الوسائط الجديدة أو الاحتفاظ بالقديمة
       const finalThumbnailUrl = thumbnailFile ? await uploadFile(thumbnailFile, 'thumbnails') : thumbnailPreview
       const finalDemoUrl = demoFile ? await uploadFile(demoFile, 'demos') : demoPreview
       const finalMobileThumbnailUrl = mobileThumbnailFile ? await uploadFile(mobileThumbnailFile, 'thumbnails/mobile') : mobileThumbnailPreview
       const finalMobileDemoUrl = mobileDemoFile ? await uploadFile(mobileDemoFile, 'demos/mobile') : mobileDemoPreview
       
-      // 2. معالجة النقاط (Features)
       const processedFeatures = await Promise.all(
         features.map(async (feature) => {
           const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : feature.videoPreview;
@@ -160,35 +161,30 @@ export default function EditProjectPage() {
 
       const techStackArray = data.tech_stack ? data.tech_stack.split(',').map((s: string) => s.trim()) : []
 
-      // 3. التحديث في قاعدة البيانات
       const { error } = await supabase.from('projects').update({
         title: data.title,
         slug: data.slug,
         tagline: data.tagline,
         description: data.description,
         tech_stack: techStackArray,
-        platforms: data.platforms || [], // المصفوفة الذكية
+        platforms: data.platforms || [], 
         
-        // الروابط
         github_url: data.github_url,
         download_url: data.download_url,
         live_url: data.live_url,
         play_store_url: data.play_store_url,
         app_store_url: data.app_store_url,
         
-        // التفاصيل
         role: data.role,
         category: data.category,
         duration: data.duration,
         client_name: data.client_name,
         testimonial: data.testimonial,
         
-        // الحالة
         status: data.status,
         is_featured: data.is_featured,
-        brand_color: data.brand_color,
+        brand_color: data.brand_color, // سيتم إرسال اللون الصحيح الآن
 
-        // الوسائط
         thumbnail_url: finalThumbnailUrl,
         demo_url: finalDemoUrl,
         mobile_thumbnail_url: finalMobileThumbnailUrl,
@@ -242,7 +238,6 @@ export default function EditProjectPage() {
           <div><label className="block text-zinc-400 text-sm mb-2">مقدمة المشروع</label><textarea {...register('description')} rows={4} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" /></div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 🌟 المنصات (Checkboxes) الذكية 🌟 */}
             <div>
               <label className="block text-emerald-400 text-sm mb-3 font-medium">المنصات المدعومة (اختر لفتح الوسائط):</label>
               <div className="flex flex-wrap gap-4">
@@ -273,7 +268,7 @@ export default function EditProjectPage() {
           </div>
         </div>
 
-        {/* --- 2. قسم الوسائط المزدوجة (إظهار شرطي) --- */}
+        {/* --- 2. قسم الوسائط المزدوجة --- */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
           <h2 className="text-xl font-bold mb-6 text-white border-b border-zinc-800 pb-4">الوسائط والمظهر</h2>
           
@@ -284,7 +279,6 @@ export default function EditProjectPage() {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* 💻 وسائط الويب/ديسكتوب */}
             {hasDesktop && (
               <div className="space-y-4 animate-in fade-in duration-500">
                 <h3 className="text-emerald-500 font-medium flex items-center gap-2"><Monitor size={18} /> وسائط الويب/سطح المكتب (عرضية)</h3>
@@ -301,7 +295,6 @@ export default function EditProjectPage() {
               </div>
             )}
 
-            {/* 📱 وسائط الجوال */}
             {hasMobile && (
               <div className="space-y-4 animate-in fade-in duration-500">
                 <h3 className="text-blue-500 font-medium flex items-center gap-2"><Smartphone size={18} /> وسائط الجوال (طولية)</h3>
@@ -332,13 +325,25 @@ export default function EditProjectPage() {
                 <option value="Beta">Beta (نسخة تجريبية)</option>
               </select>
             </div>
+            
+            {/* 🌟 إصلاح لون الهوية (توهج البطاقة) 🌟 */}
             <div>
               <label className="block text-zinc-400 text-sm mb-2">لون الهوية (توهج البطاقة)</label>
               <div className="flex gap-3">
-                <input type="color" {...register('brand_color')} className="h-12 w-12 rounded-xl bg-zinc-950 border border-zinc-800 cursor-pointer" />
-                <input type="text" {...register('brand_color')} className="flex-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" />
+                <input 
+                  type="color" 
+                  value={brandColorValue} 
+                  onChange={(e) => setValue('brand_color', e.target.value, { shouldDirty: true })} 
+                  className="h-12 w-12 rounded-xl bg-zinc-950 border border-zinc-800 cursor-pointer" 
+                />
+                <input 
+                  type="text" 
+                  {...register('brand_color')} 
+                  className="flex-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none uppercase" 
+                />
               </div>
             </div>
+
             <div className="flex items-center gap-3 bg-zinc-950 border border-zinc-800 p-4 rounded-xl h-12 mt-6 cursor-pointer hover:border-emerald-500 transition-colors">
               <input type="checkbox" id="is_featured" {...register('is_featured')} className="w-5 h-5 accent-emerald-500" />
               <label htmlFor="is_featured" className="text-white font-medium cursor-pointer">تثبيت كمشروع مميز</label>
@@ -361,7 +366,7 @@ export default function EditProjectPage() {
                 <div><label className="block text-zinc-400 text-sm mb-2">رابط App Store</label><input {...register('app_store_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
               </>
             )}
-            <div className="md:col-span-2"><label className="block text-zinc-400 text-sm mb-2">رابط تحميل مباشر (ملف / Setup)</label><input {...register('download_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+            <div className="md:col-span-2"><label className="block text-zinc-400 text-sm mb-2">رابط تحميل مباشر (آخر)</label><input {...register('download_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
           </div>
         </div>
 
