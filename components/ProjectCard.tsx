@@ -32,11 +32,11 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
   const brandColor = project.brand_color || '#10b981' // اللون الزمردي هو الافتراضي
   const isFeatured = project.is_featured === true
   
-  // توهج الإطار الخارجي للبطاقة
+  // 🌟 التوهج الخارجي السحري (External Glow) 🌟
   const glowStyle = isFeatured && !isHovered
-    ? `0 0 20px -5px ${brandColor}40` 
+    ? `0 0 30px -5px ${brandColor}80` // هالة خارجية قوية للمشروع المميز
     : isHovered 
-      ? `0 0 40px -10px ${brandColor}60` 
+      ? `0 15px 50px -10px ${brandColor}90` // توهج خارجي ضخم ومشع عند تمرير الماوس
       : 'none'
 
   // 5. فحص حالة المشروع
@@ -50,7 +50,7 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
       hover:!opacity-100 hover:!scale-[1.02] hover:z-20
       ${isFeatured ? 'animate-pulse-slow' : ''}`}
       style={{ 
-        boxShadow: glowStyle,
+        boxShadow: glowStyle, // تطبيق التوهج الخارجي هنا فقط
         borderColor: isHovered || isFeatured ? brandColor : 'transparent' 
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -77,6 +77,7 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
       )}
 
       <div className="absolute inset-0 w-full h-full bg-zinc-950">
+        {/* الصورة نظيفة تماماً بدون أي تشويش داخلي */}
         {activeThumbnail && (
           <Image 
             src={activeThumbnail} 
@@ -98,24 +99,12 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
             )}
           </div>
         )}
-
-        {/* ✨ السحر الجديد: إضاءة الصورة (Image Glow) ✨ */}
-        {/* هذه الطبقة تسلط ضوءاً ملوناً من الأعلى على الصورة باستخدام mix-blend-screen */}
-        <div 
-          className={`absolute inset-0 pointer-events-none transition-all duration-700 z-10 mix-blend-screen
-          ${isFeatured && !isHovered ? 'opacity-50 animate-pulse-slow' : 'opacity-0 group-hover:opacity-80'}`}
-          style={{
-            background: `radial-gradient(circle at 50% 0%, ${brandColor}80 0%, transparent 60%)`
-          }}
-        />
       </div>
 
-      {/* التدرج اللوني السفلي: قمنا بدمج لون الهوية بنسبة خفيفة جداً (10%) في المنتصف ليعطي تناغماً مذهلاً */}
+      {/* التدرج اللوني السفلي (أسود نظيف للقراءة فقط) */}
       <div 
-        className="absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-95 pointer-events-none z-10"
-        style={{ 
-          background: `linear-gradient(to top, #09090b 15%, ${brandColor}10 50%, transparent 90%)` 
-        }}
+        className="absolute inset-0 opacity-90 transition-opacity duration-500 group-hover:opacity-80 pointer-events-none z-10"
+        style={{ background: `linear-gradient(to top, #09090b 10%, transparent 80%)` }}
       ></div>
 
       <div className="relative h-full flex flex-col justify-end p-5 md:p-6 z-20">
@@ -140,8 +129,7 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
             href={`/projects/${project.slug}`}
             className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-3 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
             style={{ 
-              borderColor: isHovered || isFeatured ? `${brandColor}50` : 'rgba(255,255,255,0.1)',
-              boxShadow: isHovered ? `0 0 20px -5px ${brandColor}50` : 'none'
+              borderColor: isHovered || isFeatured ? `${brandColor}50` : 'rgba(255,255,255,0.1)'
             }}
           >
             <ArrowUpLeft size={20} style={{ color: isHovered || isFeatured ? brandColor : 'white', transition: 'color 0.3s' }} />
