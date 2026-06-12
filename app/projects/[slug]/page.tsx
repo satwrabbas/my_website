@@ -12,14 +12,15 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+// تحديث الـ type ليتوافق مع الـ Promise في إصدارات Next.js الحديثة
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { data: project } = await supabase.from('projects').select('title, tagline').eq('slug', slug).single()
   if (!project) return { title: 'المشروع غير موجود' }
   return { title: `${project.title} | Abbas Satwr`, description: project.tagline }
 }
 
-export default async function ProjectDetailsPage({ params }: { params: { slug: string } }) {
+export default async function ProjectDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
   const { data: project, error } = await supabase
@@ -54,10 +55,19 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
         {/* --- الهيدر الرئيسي للمشروع --- */}
         <div className="mb-20 text-center md:text-right">
           <div className="flex justify-center md:justify-start gap-3 mb-6" style={{ color: brandColor }}>
-            {project.platforms?.includes('Android') && <Smartphone size={28} title="Android" />}
-            {(project.platforms?.includes('iOS') || project.platforms?.includes('iPhone')) && <Apple size={28} title="iOS" />}
-            {project.platforms?.includes('Windows') && <Monitor size={28} title="Windows" />}
-            {project.platforms?.includes('Web') && <Globe size={28} title="Web" />}
+            {/* 🌟 حل مشكلة الـ Tooltip بلف الأيقونات بـ spans تحمل الـ title 🌟 */}
+            {project.platforms?.includes('Android') && (
+              <span title="Android"><Smartphone size={28} /></span>
+            )}
+            {(project.platforms?.includes('iOS') || project.platforms?.includes('iPhone')) && (
+              <span title="iOS"><Apple size={28} /></span>
+            )}
+            {project.platforms?.includes('Windows') && (
+              <span title="Windows"><Monitor size={28} /></span>
+            )}
+            {project.platforms?.includes('Web') && (
+              <span title="Web"><Globe size={28} /></span>
+            )}
           </div>
           
           <div className="flex flex-col md:flex-row items-center md:items-start md:justify-between gap-6 mb-6">
@@ -192,7 +202,7 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
 
             {/* وصف المشروع (Markdown) */}
             {project.description && (
-              <div className="prose prose-invert max-w-none prose-lg prose-headings:font-bold prose-p:leading-relaxed mb-20 text-zinc-300 prose-a:text-[var(--brand-color)]">
+              <div className="prose prose-invert max-w-none prose-lg prose-p:leading-relaxed mb-20 text-zinc-300 prose-a:text-[var(--brand-color)]">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {project.description}
                 </ReactMarkdown>

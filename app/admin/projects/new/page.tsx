@@ -33,8 +33,8 @@ export default function NewProjectPage() {
 
   const [features, setFeatures] = useState<ProjectFeature[]>([])
   
-  // 🌟 استخراج setValue للتحكم باللون برمجياً وإعطاء قيمة افتراضية للون 🌟
-  const { register, handleSubmit, watch, setValue } = useForm({
+  // 🌟 استخراج setValue للتحكم باللون برمجياً وإعطاء قيمة افتراضية للون بتمرير نوع <any> لتخطي اعتراض الـ TypeScript 🌟
+  const { register, handleSubmit, watch, setValue } = useForm<any>({
     defaultValues: {
       platforms: [] as string[],
       brand_color: '#10b981' // اللون الزمردي كقيمة افتراضية
@@ -227,7 +227,7 @@ export default function NewProjectPage() {
                   <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
                     {mobileThumbnailPreview ? <img src={mobileThumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
                     <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">
-                      غلاف الجوال<input type="file" accept="image/*" onChange={handleMobileThumbnailChange} className="hidden" />
+                      غلاف الجوال<input type="file" accept="image/*" onChange={handlePrimaryMobileChange => handleMobileThumbnailChange(handlePrimaryMobileChange)} className="hidden" />
                     </label>
                   </div>
                   <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">

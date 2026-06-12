@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Edit, Trash2, Smartphone, Monitor } from 'lucide-react'
+import { Plus, Edit, Trash2, Smartphone } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 
 export default function ProjectsAdminPage() {
@@ -16,21 +16,40 @@ export default function ProjectsAdminPage() {
   }, [])
 
   const fetchProjects = async () => {
-    // جلب المشاريع وترتيبها من الأحدث للأقدم
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (data) setProjects(data)
-    setIsLoading(false)
+    try {
+      // جلب المشاريع وترتيبها من الأحدث للأقدم
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('حدث خطأ أثناء جلب المشاريع من Supabase:', error.message)
+      }
+
+      if (data) {
+        setProjects(data)
+      }
+    } catch (err: any) {
+      console.error('حدث خطأ غير متوقع:', err.message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('هل أنت متأكد من حذف هذا المشروع نهائياً؟')) return
 
-    await supabase.from('projects').delete().eq('id', id)
-    fetchProjects() // تحديث القائمة بعد الحذف
+    try {
+      const { error } = await supabase.from('projects').delete().eq('id', id)
+      if (error) {
+        alert('فشل حذف المشروع: ' + error.message)
+      } else {
+        fetchProjects() // تحديث القائمة بعد الحذف الناجح
+      }
+    } catch (err: any) {
+      alert('حدث خطأ أثناء الحذف: ' + err.message)
+    }
   }
 
   return (
@@ -65,8 +84,8 @@ export default function ProjectsAdminPage() {
                 {/* استخدام ?. لتجنب الأخطاء إذا لم تكن هناك تقنيات مدخلة */}
                 {project.tech_stack?.map((tech: string, i: number) => (
                   <span key={i} className="bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 px-3 py-1 rounded-lg">
-                    {tech}
-                  </span>
+                    {tech
+                  }</span>
                 ))}
               </div>
 
