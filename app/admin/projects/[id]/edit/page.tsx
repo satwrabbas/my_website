@@ -4,12 +4,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { ArrowRight, Save, Image as ImageIcon, Video, Images, X, Plus, Trash2, ListChecks, Loader2, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple } from 'lucide-react'
+import { ArrowRight, Save, Image as ImageIcon, Video, Loader2, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { ProjectFeature } from '@/types' // 👈 استيراد واجهة الميزات من قاعدة البيانات
 
-// 1. واجهة بيانات النموذج للتعديل
+// 👈 استدعاء مُكون بناء الفصول والواجهات
+import CaseStudyBuilder, { ProjectFormChapter } from '@/components/admin/CaseStudyBuilder'
+import { ProjectChapter, ProjectFeature } from '@/types' 
+
 interface ProjectFormValues {
   title: string;
   slug: string;
@@ -32,15 +34,6 @@ interface ProjectFormValues {
   brand_color: string;
 }
 
-// 2. واجهة ميزات المشروع داخل النموذج (تسمح بأن يكون file = null في حال كانت الصورة مخزنة مسبقاً)
-interface ProjectFormFeature {
-  title: string;
-  content: string;
-  videoFile: File | null;
-  videoPreview: string | null;
-  imageFiles: { file: File | null; url: string }[]; 
-}
-
 export default function EditProjectPage() {
   const router = useRouter()
   const params = useParams()
@@ -50,21 +43,19 @@ export default function EditProjectPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // وسائط الويب/سطح المكتب
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [demoFile, setDemoFile] = useState<File | null>(null)
   const [demoPreview, setDemoPreview] = useState<string | null>(null)
 
-  // وسائط الجوال
   const [mobileThumbnailFile, setMobileThumbnailFile] = useState<File | null>(null)
   const [mobileThumbnailPreview, setMobileThumbnailPreview] = useState<string | null>(null)
   const [mobileDemoFile, setMobileDemoFile] = useState<File | null>(null)
   const [mobileDemoPreview, setMobileDemoPreview] = useState<string | null>(null)
 
-  const [features, setFeatures] = useState<ProjectFormFeature[]>([])
+  // 👈 استبدال features بـ chapters
+  const [chapters, setChapters] = useState<ProjectFormChapter[]>([])
   
-  // 👈 تطبيق الواجهة على useForm للتخلص من any
   const { register, handleSubmit, reset, watch, setValue } = useForm<ProjectFormValues>({
     defaultValues: {
       platforms: [],
@@ -77,7 +68,7 @@ export default function EditProjectPage() {
   const hasDesktop = selectedPlatforms.includes('Web') || selectedPlatforms.includes('Windows')
   const hasMobile = selectedPlatforms.includes('Android') || selectedPlatforms.includes('iOS')
 
-  // --- جلب بيانات المشروع القديمة ---
+  // --- جلب بيانات المشروع ---
   useEffect(() => {
     const fetchProject = async () => {
       const { data, error } = await supabase
@@ -117,38 +108,54 @@ export default function EditProjectPage() {
         setMobileThumbnailPreview(data.mobile_thumbnail_url)
         setMobileDemoPreview(data.mobile_demo_url)
 
-        // 👈 تطبيق النوع ProjectFeature للتخلص من any
-        if (data.features && data.features.length > 0) {
-          const loadedFeatures: ProjectFormFeature[] = data.features.map((feat: ProjectFeature) => ({
-            title: feat.title,
-            content: feat.content,
-            videoFile: null,
-            videoPreview: feat.video_url || null,
-            imageFiles: feat.image_urls ? feat.image_urls.map((url: string) => ({ file: null, url })) : [],
+        // 🌟 قراءة الفصول الجديدة، أو ترحيل النقاط القديمة إلى فصل جديد 🌟
+        let loadedChapters: ProjectFormChapter[] = []
+        
+        if (data.chapters && data.chapters.length > 0) {
+          loadedChapters = data.chapters.map((ch: ProjectChapter) => ({
+            id: ch.id || Math.random().toString(36).substring(2, 15),
+            title: ch.title,
+            description: ch.description || '',
+            features: ch.features ? ch.features.map((feat: ProjectFeature) => ({
+              id: feat.id || Math.random().toString(36).substring(2, 15),
+              title: feat.title,
+              content: feat.content,
+              layout_type: feat.layout_type || 'default',
+              videoFile: null,
+              videoPreview: feat.video_url || null,
+              imageFiles: feat.image_urls ? feat.image_urls.map((url: string) => ({ id: Math.random().toString(36).substring(2, 15), file: null, url })) : [],
+            })) : []
           }))
-          setFeatures(loadedFeatures)
+        } else if (data.features && data.features.length > 0) {
+          // دمج الميزات القديمة في فصل واحد لكي لا تضيع البيانات
+          loadedChapters = [{
+            id: Math.random().toString(36).substring(2, 15),
+            title: 'الميزات الرئيسية',
+            description: '',
+            features: data.features.map((feat: ProjectFeature) => ({
+              id: feat.id || Math.random().toString(36).substring(2, 15),
+              title: feat.title,
+              content: feat.content,
+              layout_type: 'default',
+              videoFile: null,
+              videoPreview: feat.video_url || null,
+              imageFiles: feat.image_urls ? feat.image_urls.map((url: string) => ({ id: Math.random().toString(36).substring(2, 15), file: null, url })) : [],
+            }))
+          }]
         }
+        
+        setChapters(loadedChapters)
       }
       setIsLoading(false)
     }
     fetchProject()
   }, [projectId, reset, supabase])
 
-  // --- دوال الملفات الأساسية ---
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { setThumbnailFile(e.target.files[0]); setThumbnailPreview(URL.createObjectURL(e.target.files[0])) } }
   const handleDemoChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { setDemoFile(e.target.files[0]); setDemoPreview(URL.createObjectURL(e.target.files[0])) } }
   const handleMobileThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { setMobileThumbnailFile(e.target.files[0]); setMobileThumbnailPreview(URL.createObjectURL(e.target.files[0])) } }
   const handleMobileDemoChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { setMobileDemoFile(e.target.files[0]); setMobileDemoPreview(URL.createObjectURL(e.target.files[0])) } }
 
-  // --- دوال الميزات ---
-  const addFeature = () => setFeatures([...features, { title: '', content: '', videoFile: null, videoPreview: null, imageFiles: [] }])
-  const removeFeature = (index: number) => setFeatures(features.filter((_, i) => i !== index))
-  const updateFeatureText = (index: number, field: 'title' | 'content', value: string) => { const updated = [...features]; updated[index][field] = value; setFeatures(updated) }
-  const handleFeatureVideo = (index: number, e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { const updated = [...features]; updated[index].videoFile = e.target.files[0]; updated[index].videoPreview = URL.createObjectURL(e.target.files[0]); setFeatures(updated) } }
-  const handleFeatureImages = (index: number, e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files) { const filesArray = Array.from(e.target.files).map(file => ({ file, url: URL.createObjectURL(file) })); const updated = [...features]; updated[index].imageFiles = [...updated[index].imageFiles, ...filesArray]; setFeatures(updated) } }
-  const removeFeatureImage = (featureIndex: number, imageIndex: number) => { const updated = [...features]; updated[featureIndex].imageFiles = updated[featureIndex].imageFiles.filter((_, i) => i !== imageIndex); setFeatures(updated) }
-
-  // --- دالة الرفع ---
   const uploadFile = async (file: File, folder: string): Promise<string> => {
     const fileExt = file.name.split('.').pop()
     const fileName = `${folder}/${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
@@ -168,16 +175,35 @@ export default function EditProjectPage() {
       const finalMobileThumbnailUrl = mobileThumbnailFile ? await uploadFile(mobileThumbnailFile, 'thumbnails/mobile') : mobileThumbnailPreview
       const finalMobileDemoUrl = mobileDemoFile ? await uploadFile(mobileDemoFile, 'demos/mobile') : mobileDemoPreview
       
-      const processedFeatures: ProjectFeature[] = await Promise.all(
-        features.map(async (feature) => {
-          const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : feature.videoPreview;
-          const image_urls = await Promise.all(
-            feature.imageFiles.map(async (img) => {
-              if (img.file) return await uploadFile(img.file, 'features/images')
-              return img.url 
+      // 👈 معالجة ورفع ملفات الفصول (Chapters)
+      const processedChapters = await Promise.all(
+        chapters.map(async (chapter) => {
+          const processedFeatures = await Promise.all(
+            chapter.features.map(async (feature) => {
+              const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : feature.videoPreview;
+              const image_urls = await Promise.all(
+                feature.imageFiles.map(async (img) => {
+                  if (img.file) return await uploadFile(img.file, 'features/images')
+                  return img.url 
+                })
+              );
+              return { 
+                id: feature.id,
+                title: feature.title, 
+                content: feature.content, 
+                layout_type: feature.layout_type,
+                video_url: video_url || undefined, 
+                image_urls 
+              }
             })
-          );
-          return { title: feature.title, content: feature.content, video_url: video_url || undefined, image_urls }
+          )
+
+          return {
+            id: chapter.id,
+            title: chapter.title,
+            description: chapter.description,
+            features: processedFeatures
+          }
         })
       )
 
@@ -212,7 +238,7 @@ export default function EditProjectPage() {
         mobile_thumbnail_url: finalMobileThumbnailUrl,
         mobile_demo_url: finalMobileDemoUrl,
         
-        features: processedFeatures,
+        chapters: processedChapters, // 👈 التحديث في العمود الجديد
       }).eq('id', projectId)
 
       if (error) throw error
@@ -399,57 +425,12 @@ export default function EditProjectPage() {
           </div>
         </div>
 
-        {/* --- 6. قسم النقاط الديناميكية --- */}
-        <div className="bg-zinc-900 border border-emerald-500/30 rounded-3xl p-8 space-y-8 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-2 border-b border-zinc-800 pb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2 text-white"><ListChecks className="text-emerald-500" /> تعديل دراسة الحالة</h2>
-            <button type="button" onClick={addFeature} disabled={isSubmitting} className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 border border-zinc-700">
-              <Plus size={18} /> إضافة نقطة
-            </button>
-          </div>
-
-          {features.length === 0 ? (
-            <div className="text-center py-12 text-zinc-500">لم تقم بإضافة أي نقاط شرح بعد.</div>
-          ) : (
-            <div className="space-y-12">
-              {features.map((feature, index) => (
-                <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 relative group">
-                  <div className="absolute -top-3 -right-3 bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">{index + 1}</div>
-                  <button type="button" onClick={() => removeFeature(index)} disabled={isSubmitting} className="absolute -top-3 -left-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 shadow-lg"><Trash2 size={16} /></button>
-
-                  <div className="space-y-4 mb-6">
-                    <input value={feature.title} onChange={(e) => updateFeatureText(index, 'title', e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none font-bold text-lg" required />
-                    <textarea value={feature.content} onChange={(e) => updateFeatureText(index, 'content', e.target.value)} rows={4} className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" required />
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-zinc-800">
-                    <div className="lg:col-span-1 border-2 border-dashed border-zinc-800 rounded-xl p-4 flex flex-col items-center justify-center relative h-32 group/vid">
-                      {feature.videoPreview ? (feature.videoPreview.match(/\.(mp4|webm)$/i) ? <video src={feature.videoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-lg" /> : <img src={feature.videoPreview} className="w-full h-full object-cover rounded-lg" />) : <Video size={24} className="text-zinc-600 mb-2" />}
-                      <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover/vid:opacity-100 cursor-pointer text-white font-medium text-sm rounded-xl">تغيير<input type="file" accept="video/mp4,video/webm,image/*" onChange={(e) => handleFeatureVideo(index, e)} className="hidden" /></label>
-                    </div>
-
-                    <div className="lg:col-span-2 border-2 border-dashed border-zinc-800 rounded-xl p-4 relative min-h-[8rem]">
-                      <div className="flex justify-between w-full absolute top-0 left-0 p-3">
-                        <span className="text-zinc-500 text-xs font-medium">صور النقطة</span>
-                        <label className="cursor-pointer bg-zinc-800 text-white px-3 py-1 rounded-lg text-xs flex items-center gap-1"><Images size={14} /> إضافة<input type="file" accept="image/*" multiple onChange={(e) => handleFeatureImages(index, e)} className="hidden" /></label>
-                      </div>
-                      {feature.imageFiles.length > 0 && (
-                        <div className="grid grid-cols-3 gap-2 mt-8 w-full">
-                          {feature.imageFiles.map((img, imgIndex) => (
-                            <div key={imgIndex} className="relative group/img rounded-md h-16 border border-zinc-700">
-                              <img src={img.url} className="w-full h-full object-cover" />
-                              <button type="button" onClick={() => removeFeatureImage(index, imgIndex)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100"><X size={10} /></button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* 👈 استدعاء مُكوّن السحب والإفلات وتمرير الفصول إليه */}
+        <CaseStudyBuilder 
+          chapters={chapters} 
+          setChapters={setChapters} 
+          isSubmitting={isSubmitting} 
+        />
 
         <button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl px-4 py-5 flex items-center justify-center gap-2 text-lg shadow-lg disabled:opacity-50">
           <Save size={24} className={isSubmitting ? "animate-spin" : ""} /><span>{isSubmitting ? 'جاري التحديث...' : 'تحديث المشروع'}</span>
