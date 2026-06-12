@@ -11,16 +11,21 @@ export default function MarqueeRow({
   const animationClass = direction === 'right' ? 'animate-marquee-right' : 'animate-marquee-left'
 
   return (
-    <div className="w-full overflow-hidden flex relative py-6">
+    // 🔹 تقليل المسافة العمودية `py-4` للموبايل لتوفير مساحة الشاشة
+    <div className="w-full overflow-hidden flex relative py-4 md:py-6">
+      
       {/* 🌟 أضفنا `group/row` هنا لتفعيل تأثير التركيز (Spotlight) لاحقاً 🌟 */}
-      <div className={`flex items-center gap-6 md:gap-8 px-3 ${animationClass} group/row`}>
+      {/* 🔹 تقليل المسافة بين البطاقات لـ `gap-4` في الجوال لتظهر بشكل متقارب */}
+      <div className={`flex items-center gap-4 md:gap-8 px-2 md:px-4 ${animationClass} group/row`}>
+        
         {/* المجموعتين لخلق تأثير التمرير اللانهائي */}
-        <div className="flex gap-6 md:gap-8 shrink-0 items-center">
+        <div className="flex gap-4 md:gap-8 shrink-0 items-center">
           {children}
         </div>
-        <div className="flex gap-6 md:gap-8 shrink-0 items-center">
+        <div className="flex gap-4 md:gap-8 shrink-0 items-center">
           {children}
         </div>
+
       </div>
     </div>
   )
