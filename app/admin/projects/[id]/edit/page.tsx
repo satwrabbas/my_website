@@ -39,8 +39,8 @@ export default function EditProjectPage() {
 
   const [features, setFeatures] = useState<ProjectFeature[]>([])
   
-  // 🌟 استخراج setValue للتحكم برمجياً في الحقول 🌟
-  const { register, handleSubmit, reset } = useForm<any>({
+  // 🌟 استخراج setValue و watch للتحكم برمجياً في الحقول ومراقبتها 🌟
+  const { register, handleSubmit, reset, watch, setValue } = useForm<any>({
     defaultValues: {
       platforms: [],
       brand_color: '#10b981'
