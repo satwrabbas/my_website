@@ -1,6 +1,6 @@
 allowBuilds:
   '@ampproject/toolbox-optimizer': set this to true or false
   es5-ext: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  sharp: true
+  unrs-resolver: true
 minimumReleaseAge: 0
