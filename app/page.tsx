@@ -39,11 +39,11 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/30 overflow-x-hidden">
       
-      <header className="max-w-5xl mx-auto px-6 py-8 flex justify-between items-center relative z-20">
+      <header className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-5 sm:gap-0 relative z-20">
         <div className="font-bold text-xl tracking-tighter">
           Abbas<span className="text-emerald-500">.</span>
         </div>
-        <nav className="hidden md:flex gap-6 text-sm font-medium text-zinc-400">
+        <nav className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm font-medium text-zinc-400">
           <Link href="#projects" className="hover:text-white transition-colors">الأعمال</Link>
           <Link href="/writing" className="hover:text-white transition-colors">المدونة</Link>
           <Link href="#about" className="hover:text-white transition-colors">عني</Link>
