@@ -11,18 +11,28 @@ export default function MarqueeRow({
   const animationClass = direction === 'right' ? 'animate-marquee-right' : 'animate-marquee-left'
 
   return (
-    // 🔹 تقليل المسافة العمودية `py-4` للموبايل لتوفير مساحة الشاشة
-    <div className="w-full overflow-hidden flex relative py-4 md:py-6">
+    // الحاوية الخارجية: تمنع ظهور أي أشرطة تمرير أفقية مزعجة للموقع
+    <div className="w-full relative py-4 md:py-6 overflow-hidden">
       
-      {/* 🌟 أضفنا `group/row` هنا لتفعيل تأثير التركيز (Spotlight) لاحقاً 🌟 */}
-      {/* 🔹 تقليل المسافة بين البطاقات لـ `gap-4` في الجوال لتظهر بشكل متقارب */}
-      <div className={`flex items-center gap-4 md:gap-8 px-2 md:px-4 ${animationClass} group/row`}>
+      {/* 
+         السر كله هنا:
+         - في الجوال: w-full (عرض الشاشة) + overflow-x-auto (سحب يدوي) + snap-x (التقاط).
+         - في الكمبيوتر: md:w-max (لإعطاء مساحة للحركة) + md:overflow-visible (إلغاء السحب ليعمل الأنيميشن).
+      */}
+      <div className={`flex items-center gap-4 md:gap-8 px-5 md:px-0 w-full md:w-max overflow-x-auto md:overflow-visible snap-x snap-mandatory hide-scrollbar group/row ${animationClass}`}>
         
-        {/* المجموعتين لخلق تأثير التمرير اللانهائي */}
-        <div className="flex gap-4 md:gap-8 shrink-0 items-center">
-          {children}
-        </div>
-        <div className="flex gap-4 md:gap-8 shrink-0 items-center">
+        {/* 
+          البطاقات الأساسية: 
+          مباشرة داخل مسار السحب لكي يعمل الـ (Snap) بشكل مثالي في الجوال.
+        */}
+        {children}
+
+        {/* 
+          نسخة مكررة من البطاقات:
+          - في الجوال: مخفية تماماً (hidden) لأن المستخدم سيسحب البطاقات بنفسه.
+          - في الكمبيوتر: تظهر كأبناء مباشرين (md:contents) لتكمل تأثير الحركة اللانهائية.
+        */}
+        <div className="hidden md:contents">
           {children}
         </div>
 
