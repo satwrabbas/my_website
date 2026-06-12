@@ -7,13 +7,38 @@ import { useForm } from 'react-hook-form'
 import { ArrowRight, Save, Image as ImageIcon, Video, Images, X, Plus, Trash2, ListChecks, Loader2, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { ProjectFeature } from '@/types' // 👈 استيراد واجهة الميزات من قاعدة البيانات
 
-interface ProjectFeature {
+// 1. واجهة بيانات النموذج للتعديل
+interface ProjectFormValues {
+  title: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  tech_stack: string;
+  platforms: string[];
+  github_url: string;
+  download_url: string;
+  live_url: string;
+  play_store_url: string;
+  app_store_url: string;
+  role: string;
+  category: string;
+  duration: string;
+  client_name: string;
+  testimonial: string;
+  status: string;
+  is_featured: boolean;
+  brand_color: string;
+}
+
+// 2. واجهة ميزات المشروع داخل النموذج (تسمح بأن يكون file = null في حال كانت الصورة مخزنة مسبقاً)
+interface ProjectFormFeature {
   title: string;
   content: string;
   videoFile: File | null;
   videoPreview: string | null;
-  imageFiles: { file: File | null; url: string }[];
+  imageFiles: { file: File | null; url: string }[]; 
 }
 
 export default function EditProjectPage() {
@@ -37,18 +62,17 @@ export default function EditProjectPage() {
   const [mobileDemoFile, setMobileDemoFile] = useState<File | null>(null)
   const [mobileDemoPreview, setMobileDemoPreview] = useState<string | null>(null)
 
-  const [features, setFeatures] = useState<ProjectFeature[]>([])
+  const [features, setFeatures] = useState<ProjectFormFeature[]>([])
   
-  // 🌟 استخراج setValue و watch للتحكم برمجياً في الحقول ومراقبتها 🌟
-  const { register, handleSubmit, reset, watch, setValue } = useForm<any>({
+  // 👈 تطبيق الواجهة على useForm للتخلص من any
+  const { register, handleSubmit, reset, watch, setValue } = useForm<ProjectFormValues>({
     defaultValues: {
       platforms: [],
       brand_color: '#10b981'
     }
   })
 
-  // 🌟 المراقبة الحية للون والمنصات المختارة 🌟
-  const brandColorValue = watch('brand_color') || '#10b981' // مراقبة اللون
+  const brandColorValue = watch('brand_color') || '#10b981' 
   const selectedPlatforms = watch('platforms') || []
   const hasDesktop = selectedPlatforms.includes('Web') || selectedPlatforms.includes('Windows')
   const hasMobile = selectedPlatforms.includes('Android') || selectedPlatforms.includes('iOS')
@@ -63,7 +87,6 @@ export default function EditProjectPage() {
         .single()
 
       if (data) {
-        // تعبئة البيانات النصية والحقول الجديدة
         reset({
           title: data.title,
           slug: data.slug,
@@ -86,18 +109,17 @@ export default function EditProjectPage() {
           
           status: data.status || 'Live',
           is_featured: data.is_featured || false,
-          brand_color: data.brand_color || '#10b981', // تعبئة اللون المحفوظ
+          brand_color: data.brand_color || '#10b981',
         })
 
-        // تعبئة الوسائط
         setThumbnailPreview(data.thumbnail_url)
         setDemoPreview(data.demo_url)
         setMobileThumbnailPreview(data.mobile_thumbnail_url)
         setMobileDemoPreview(data.mobile_demo_url)
 
-        // تعبئة النقاط التفاعلية (Features)
+        // 👈 تطبيق النوع ProjectFeature للتخلص من any
         if (data.features && data.features.length > 0) {
-          const loadedFeatures: ProjectFeature[] = data.features.map((feat: any) => ({
+          const loadedFeatures: ProjectFormFeature[] = data.features.map((feat: ProjectFeature) => ({
             title: feat.title,
             content: feat.content,
             videoFile: null,
@@ -118,7 +140,7 @@ export default function EditProjectPage() {
   const handleMobileThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { setMobileThumbnailFile(e.target.files[0]); setMobileThumbnailPreview(URL.createObjectURL(e.target.files[0])) } }
   const handleMobileDemoChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { setMobileDemoFile(e.target.files[0]); setMobileDemoPreview(URL.createObjectURL(e.target.files[0])) } }
 
-  // --- دوال الميزات (Features) ---
+  // --- دوال الميزات ---
   const addFeature = () => setFeatures([...features, { title: '', content: '', videoFile: null, videoPreview: null, imageFiles: [] }])
   const removeFeature = (index: number) => setFeatures(features.filter((_, i) => i !== index))
   const updateFeatureText = (index: number, field: 'title' | 'content', value: string) => { const updated = [...features]; updated[index][field] = value; setFeatures(updated) }
@@ -127,7 +149,7 @@ export default function EditProjectPage() {
   const removeFeatureImage = (featureIndex: number, imageIndex: number) => { const updated = [...features]; updated[featureIndex].imageFiles = updated[featureIndex].imageFiles.filter((_, i) => i !== imageIndex); setFeatures(updated) }
 
   // --- دالة الرفع ---
-  const uploadFile = async (file: File, folder: string) => {
+  const uploadFile = async (file: File, folder: string): Promise<string> => {
     const fileExt = file.name.split('.').pop()
     const fileName = `${folder}/${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
     const { error } = await supabase.storage.from('project-assets').upload(fileName, file)
@@ -136,8 +158,8 @@ export default function EditProjectPage() {
     return data.publicUrl
   }
 
-  // --- دالة الحفظ (Submit) ---
-  const onSubmit = async (data: any) => {
+  // --- دالة الحفظ ---
+  const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true)
 
     try {
@@ -146,7 +168,7 @@ export default function EditProjectPage() {
       const finalMobileThumbnailUrl = mobileThumbnailFile ? await uploadFile(mobileThumbnailFile, 'thumbnails/mobile') : mobileThumbnailPreview
       const finalMobileDemoUrl = mobileDemoFile ? await uploadFile(mobileDemoFile, 'demos/mobile') : mobileDemoPreview
       
-      const processedFeatures = await Promise.all(
+      const processedFeatures: ProjectFeature[] = await Promise.all(
         features.map(async (feature) => {
           const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : feature.videoPreview;
           const image_urls = await Promise.all(
@@ -155,7 +177,7 @@ export default function EditProjectPage() {
               return img.url 
             })
           );
-          return { title: feature.title, content: feature.content, video_url, image_urls }
+          return { title: feature.title, content: feature.content, video_url: video_url || undefined, image_urls }
         })
       )
 
@@ -183,7 +205,7 @@ export default function EditProjectPage() {
         
         status: data.status,
         is_featured: data.is_featured,
-        brand_color: data.brand_color, // سيتم إرسال اللون الصحيح الآن
+        brand_color: data.brand_color,
 
         thumbnail_url: finalThumbnailUrl,
         demo_url: finalDemoUrl,
@@ -195,8 +217,8 @@ export default function EditProjectPage() {
 
       if (error) throw error
       router.push('/admin/projects')
-    } catch (error: any) {
-      alert('حدث خطأ أثناء التعديل: ' + error.message)
+    } catch (error: unknown) {
+      alert('حدث خطأ أثناء التعديل: ' + (error as Error).message)
     } finally {
       setIsSubmitting(false)
     }
@@ -207,7 +229,6 @@ export default function EditProjectPage() {
   return (
     <div className="max-w-5xl mx-auto pb-20 relative">
       
-      {/* 🔴 شاشة التحميل الشفافة 🔴 */}
       {isSubmitting && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white">
           <Loader2 size={64} className="animate-spin text-emerald-500 mb-6" />
@@ -326,7 +347,6 @@ export default function EditProjectPage() {
               </select>
             </div>
             
-            {/* 🌟 إصلاح لون الهوية (توهج البطاقة) 🌟 */}
             <div>
               <label className="block text-zinc-400 text-sm mb-2">لون الهوية (توهج البطاقة)</label>
               <div className="flex gap-3">

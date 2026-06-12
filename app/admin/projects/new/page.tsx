@@ -7,13 +7,38 @@ import { useForm } from 'react-hook-form'
 import { ArrowRight, Save, Image as ImageIcon, Video, Images, X, Plus, Trash2, ListChecks, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { ProjectFeature } from '@/types' // استيراد النوع الخاص بقاعدة البيانات
 
-interface ProjectFeature {
+// 1. واجهة مخصصة لميزات المشروع أثناء التعديل (تحتوي على File objects)
+interface ProjectFormFeature {
   title: string;
   content: string;
   videoFile: File | null;
   videoPreview: string | null;
   imageFiles: { file: File; url: string }[];
+}
+
+// 2. واجهة بيانات النموذج (React Hook Form)
+interface ProjectFormValues {
+  title: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  tech_stack: string;
+  platforms: string[];
+  github_url: string;
+  download_url: string;
+  live_url: string;
+  play_store_url: string;
+  app_store_url: string;
+  role: string;
+  category: string;
+  duration: string;
+  client_name: string;
+  testimonial: string;
+  status: string;
+  is_featured: boolean;
+  brand_color: string;
 }
 
 export default function NewProjectPage() {
@@ -31,17 +56,16 @@ export default function NewProjectPage() {
   const [mobileDemoFile, setMobileDemoFile] = useState<File | null>(null)
   const [mobileDemoPreview, setMobileDemoPreview] = useState<string | null>(null)
 
-  const [features, setFeatures] = useState<ProjectFeature[]>([])
+  const [features, setFeatures] = useState<ProjectFormFeature[]>([])
   
-  // 🌟 استخراج setValue للتحكم باللون برمجياً وإعطاء قيمة افتراضية للون بتمرير نوع <any> لتخطي اعتراض الـ TypeScript 🌟
-  const { register, handleSubmit, watch, setValue } = useForm<any>({
+  // 👈 تطبيق النوع على useForm للتخلص من any
+  const { register, handleSubmit, watch, setValue } = useForm<ProjectFormValues>({
     defaultValues: {
-      platforms: [] as string[],
-      brand_color: '#10b981' // اللون الزمردي كقيمة افتراضية
+      platforms: [],
+      brand_color: '#10b981' 
     }
   })
 
-  // 🌟 المراقبة الحية للون والمنصات المختارة 🌟
   const brandColorValue = watch('brand_color') || '#10b981'
   const selectedPlatforms = watch('platforms') || []
   const hasDesktop = selectedPlatforms.includes('Web') || selectedPlatforms.includes('Windows')
@@ -62,7 +86,7 @@ export default function NewProjectPage() {
   const removeFeatureImage = (featureIndex: number, imageIndex: number) => { const updated = [...features]; updated[featureIndex].imageFiles = updated[featureIndex].imageFiles.filter((_, i) => i !== imageIndex); setFeatures(updated) }
 
   // --- دالة الرفع ---
-  const uploadFile = async (file: File, folder: string) => {
+  const uploadFile = async (file: File, folder: string): Promise<string> => {
     const fileExt = file.name.split('.').pop()
     const fileName = `${folder}/${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
     const { error } = await supabase.storage.from('project-assets').upload(fileName, file)
@@ -72,7 +96,7 @@ export default function NewProjectPage() {
   }
 
   // --- الحفظ في قاعدة البيانات ---
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true)
     try {
       const thumbnailUrl = thumbnailFile ? await uploadFile(thumbnailFile, 'thumbnails') : null
@@ -80,7 +104,7 @@ export default function NewProjectPage() {
       const mobileThumbnailUrl = mobileThumbnailFile ? await uploadFile(mobileThumbnailFile, 'thumbnails/mobile') : null
       const mobileDemoUrl = mobileDemoFile ? await uploadFile(mobileDemoFile, 'demos/mobile') : null
       
-      const processedFeatures = await Promise.all(
+      const processedFeatures: ProjectFeature[] = await Promise.all(
         features.map(async (feature) => {
           const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : null;
           const image_urls = await Promise.all(feature.imageFiles.map(img => uploadFile(img.file, 'features/images')));
@@ -88,7 +112,7 @@ export default function NewProjectPage() {
         })
       )
 
-      const techStackArray = data.tech_stack ? data.tech_stack.split(',').map((s: string) => s.trim()) : []
+      const techStackArray = data.tech_stack ? data.tech_stack.split(',').map((s) => s.trim()) : []
 
       const { error } = await supabase.from('projects').insert([
         {
@@ -113,7 +137,7 @@ export default function NewProjectPage() {
           
           status: data.status || 'Live',
           is_featured: data.is_featured || false,
-          brand_color: data.brand_color || '#10b981', // حفظ اللون الصحيح
+          brand_color: data.brand_color || '#10b981',
 
           thumbnail_url: thumbnailUrl,
           demo_url: demoUrl,
@@ -126,8 +150,8 @@ export default function NewProjectPage() {
 
       if (error) throw error
       router.push('/admin/projects')
-    } catch (error: any) {
-      alert('حدث خطأ أثناء الرفع: ' + error.message)
+    } catch (error: unknown) {
+      alert('حدث خطأ أثناء الرفع: ' + (error as Error).message)
     } finally {
       setIsSubmitting(false)
     }
@@ -227,7 +251,7 @@ export default function NewProjectPage() {
                   <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
                     {mobileThumbnailPreview ? <img src={mobileThumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
                     <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">
-                      غلاف الجوال<input type="file" accept="image/*" onChange={handlePrimaryMobileChange => handleMobileThumbnailChange(handlePrimaryMobileChange)} className="hidden" />
+                      غلاف الجوال<input type="file" accept="image/*" onChange={handleMobileThumbnailChange} className="hidden" />
                     </label>
                   </div>
                   <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
@@ -256,7 +280,6 @@ export default function NewProjectPage() {
               </select>
             </div>
 
-            {/* 🌟 إصلاح لون الهوية (توهج البطاقة) 🌟 */}
             <div>
               <label className="block text-zinc-400 text-sm mb-2">لون الهوية (توهج البطاقة)</label>
               <div className="flex gap-3">

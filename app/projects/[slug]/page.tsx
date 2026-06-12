@@ -6,43 +6,61 @@ import { ArrowRight, Smartphone, Monitor, Download, ExternalLink, Globe, Apple, 
 import { createClient } from '@supabase/supabase-js'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { Project, ProjectFeature } from '@/types' // 👈 استيراد الواجهات
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+// 👈 تحسين الأمان وإدارة الأخطاء في Metadata
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { data: project } = await supabase.from('projects').select('title, tagline').eq('slug', slug).single()
-  if (!project) return { title: 'المشروع غير موجود' }
-  return { title: `${project.title} | Abbas Satwr`, description: project.tagline }
+  
+  try {
+    const { data: project, error } = await supabase
+      .from('projects')
+      .select('title, tagline')
+      .eq('slug', slug)
+      .single()
+      
+    if (error || !project) {
+      return { title: 'المشروع غير موجود | Abbas Satwr' }
+    }
+    
+    return { 
+      title: `${project.title} | Abbas Satwr`, 
+      description: project.tagline 
+    }
+  } catch (err) {
+    return { title: 'المشروع | Abbas Satwr' }
+  }
 }
 
 export default async function ProjectDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
-  const { data: project, error } = await supabase
+  const { data, error } = await supabase
     .from('projects')
     .select('*')
     .eq('slug', slug)
     .single()
 
-  if (error || !project) {
+  if (error || !data) {
     notFound()
   }
 
-  const features = project.features || []
+  // 👈 تطبيق نوع Project
+  const project: Project = data 
+  const features: ProjectFeature[] = project.features || []
   const brandColor = project.brand_color || '#10b981'
   const isNotLive = project.status && project.status.toLowerCase() !== 'live'
 
   return (
-    // 🔹 تقليل pb-32 إلى pb-16 للجوال
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-16 md:pb-32 selection:bg-white/20" style={{ '--brand-color': brandColor } as React.CSSProperties}>
       
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[400px] opacity-20 blur-[150px] pointer-events-none" style={{ backgroundColor: brandColor }}></div>
 
-      {/* 🔹 تقليل Padding الهيدر */}
       <header className="max-w-5xl mx-auto px-5 md:px-6 py-6 md:py-8 relative z-10">
         <Link href="/#projects" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm md:text-base">
           <ArrowRight size={18} className="md:w-5 md:h-5" />
@@ -52,7 +70,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
       <main className="max-w-5xl mx-auto px-5 md:px-6 relative z-10">
         
-        {/* 🔹 تقليل مسافة mb-20 إلى mb-12 للجوال */}
         <div className="mb-12 md:mb-20 text-center md:text-right">
           <div className="flex justify-center md:justify-start gap-2 md:gap-3 mb-4 md:mb-6" style={{ color: brandColor }}>
             {project.platforms?.includes('Android') && <span title="Android"><Smartphone size={24} className="md:w-7 md:h-7" /></span>}
@@ -62,7 +79,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           </div>
           
           <div className="flex flex-col md:flex-row items-center md:items-start md:justify-between gap-4 md:gap-6 mb-4 md:mb-6">
-            {/* 🔹 تصغير العنوان الرئيسي text-4xl للجوال */}
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-tight tracking-tight">
               {project.title}
             </h1>
@@ -74,16 +90,14 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
             )}
           </div>
 
-          {/* 🔹 تصغير الخط text-base للجوال */}
           <p className="text-base md:text-xl lg:text-2xl text-zinc-400 mb-8 md:mb-12 leading-relaxed max-w-3xl">
             {project.tagline}
           </p>
 
-          {/* 🔹 تقليل ارتفاع الصورة 250px والاستدارة rounded-2xl للجوال */}
           {(project.thumbnail_url || project.mobile_thumbnail_url) && (
             <div className="w-full h-[250px] sm:h-[300px] md:h-[500px] lg:h-[600px] rounded-2xl md:rounded-[2rem] overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative">
               <Image 
-                src={project.thumbnail_url || project.mobile_thumbnail_url} 
+                src={project.thumbnail_url || project.mobile_thumbnail_url || ''} 
                 alt={project.title} 
                 fill
                 priority
@@ -94,11 +108,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           )}
         </div>
 
-        {/* 🔹 تقليل المسافة بين العمودين gap-8 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
           
           <aside className="lg:col-span-4 space-y-6 md:space-y-8 order-2 lg:order-1">
-            {/* 🔹 تقليل p-8 إلى p-5 */}
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl md:rounded-3xl p-5 md:p-8 sticky top-8 backdrop-blur-sm shadow-xl">
               
               <div className="mb-6 md:mb-8 space-y-3 md:space-y-4 border-b border-zinc-800 pb-5 md:pb-6 text-sm md:text-base">
@@ -125,7 +137,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               {project.tech_stack && project.tech_stack.length > 0 && (
                 <div className="mb-6 md:mb-8">
                   <h3 className="text-white font-bold mb-3 md:mb-4 text-base md:text-lg">التقنيات المستخدمة</h3>
-                  {/* 🔹 تقليل المسافة والأحجام للأزرار */}
                   <div className="flex flex-wrap gap-2">
                     {project.tech_stack.map((tech: string, i: number) => (
                       <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl">
@@ -136,7 +147,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                 </div>
               )}
 
-              {/* 🔹 تصغير الـ padding للأزرار `py-3.5` وتقليل الاستدارة `rounded-xl` */}
               <div className="flex flex-col gap-3 pt-2 md:pt-4 text-sm md:text-base">
                 {project.live_url && (
                   <Link href={project.live_url} target="_blank" className="font-bold rounded-xl md:rounded-2xl px-4 py-3.5 md:py-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] text-white shadow-lg" style={{ backgroundColor: brandColor, boxShadow: `0 10px 30px -10px ${brandColor}` }}>
@@ -170,7 +180,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           <article className="lg:col-span-8 order-1 lg:order-2">
             
             {project.client_name && project.testimonial && (
-              // 🔹 تقليل p-10 إلى p-6 للجوال 
               <div className="mb-10 md:mb-16 bg-zinc-900/40 border border-zinc-800 rounded-2xl md:rounded-3xl p-6 md:p-10 relative">
                 <Quote size={32} className="absolute top-4 right-4 md:top-6 md:right-6 opacity-20 md:w-10 md:h-10" style={{ color: brandColor }} />
                 <p className="text-lg md:text-2xl font-medium text-white leading-relaxed mb-6 italic relative z-10">
@@ -189,7 +198,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
             )}
 
             {project.description && (
-              // 🔹 تصغير نص الوصف لـ prose-base للجوال و mb-12
               <div className="prose prose-base md:prose-lg prose-invert max-w-none prose-p:leading-relaxed mb-12 md:mb-20 text-zinc-300 prose-a:text-[var(--brand-color)]">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {project.description}
@@ -198,12 +206,11 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
             )}
 
             {features.length > 0 && (
-              // 🔹 تقليل المسافة بين الميزات للجوال space-y-16
               <div className="space-y-16 md:space-y-32">
-                {features.map((feature: any, index: number) => (
+                {/* 👈 استخدام ProjectFeature بدلاً من any */}
+                {features.map((feature: ProjectFeature, index: number) => (
                   <section key={index} className="relative">
                     
-                    {/* 🔹 تصغير الرقم الخلفي للجوال */}
                     <div className="absolute -top-6 -right-2 md:-top-16 md:-right-8 text-[6rem] md:text-[10rem] font-black opacity-10 select-none pointer-events-none z-0" style={{ color: brandColor }}>
                       {String(index + 1).padStart(2, '0')}
                     </div>
@@ -226,7 +233,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                       )}
 
                       {feature.image_urls && feature.image_urls.length > 0 && (
-                        // 🔹 جعل الصور فوق بعضها في الجوال `grid-cols-1` وبجانب بعضها في الأكبر `sm:grid-cols-2`
                         <div className={`grid gap-3 md:gap-4 ${feature.image_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
                           {feature.image_urls.map((imgUrl: string, imgIndex: number) => (
                             <div key={imgIndex} className="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group">

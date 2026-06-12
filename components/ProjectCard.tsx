@@ -5,8 +5,14 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Smartphone, Monitor, Globe, Apple, ArrowUpLeft, Construction } from 'lucide-react'
+import { Project } from '@/types' // 👈 استيراد واجهة المشروع
 
-export default function ProjectCard({ project, type }: { project: any, type: 'mobile' | 'desktop' }) {
+interface ProjectCardProps {
+  project: Project; // 👈 استخدام النوع بدلاً من any
+  type: 'mobile' | 'desktop';
+}
+
+export default function ProjectCard({ project, type }: ProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
   // 1. قراءة المنصات
@@ -45,20 +51,16 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
   return (
     <div 
       className={`group relative rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-800 transition-all duration-500 flex-shrink-0 ${cardSizeClasses} 
-      /* 🔹 تأثيرات الكمبيوتر فقط md: */
       md:group-hover/row:opacity-40 md:group-hover/row:scale-[0.98] 
       md:hover:!opacity-100 md:hover:!scale-[1.02] md:hover:z-20
-      /* 🔹 تأثيرات الجوال: انضغاط عند اللمس واستقرار في المنتصف */
       active:scale-[0.98] snap-center
       ${isFeatured ? 'animate-pulse-slow' : ''}`}
       style={{ 
         boxShadow: glowStyle,
         borderColor: isHovered || isFeatured ? brandColor : 'transparent' 
       }}
-      // أحداث الكمبيوتر
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      // 🔹 أحداث الجوال (اللمس يفعّل تأثير الهوفر لمدة ثانيتين)
       onTouchStart={() => setIsHovered(true)}
       onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
     >
@@ -95,7 +97,6 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
           />
         )}
 
-        {/* 🔹 إزالة hidden md:block ليظهر الفيديو في الجوال عند اللمس */}
         {activeDemo && isHovered && (
           <div className="absolute inset-0 w-full h-full animate-in fade-in duration-700">
             {isVideoDemo ? (
@@ -132,7 +133,6 @@ export default function ProjectCard({ project, type }: { project: any, type: 'mo
 
           <Link 
             href={`/projects/${project.slug}`}
-            /* 🔹 إضافة pointer-events-auto للزر لكي يمكن النقر عليه */
             className="shrink-0 backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/10 text-white p-2.5 md:p-3 rounded-lg md:rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 pointer-events-auto"
             style={{ 
               borderColor: isHovered || isFeatured ? `${brandColor}50` : 'rgba(255,255,255,0.1)'
