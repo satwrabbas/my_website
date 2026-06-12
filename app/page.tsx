@@ -32,18 +32,19 @@ export default async function Home() {
     .select('*')
     .order('created_at', { ascending: false })
 
-  // 👈 فصل المشاريع برمجياً حسب نوع المنصة
   const desktopProjects = projects?.filter(p => p.platforms?.includes('Web') || p.platforms?.includes('Windows')) || []
   const mobileProjects = projects?.filter(p => p.platforms?.includes('Android') || p.platforms?.includes('iOS') || p.platforms?.includes('iPhone')) || []
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-emerald-500/30 overflow-x-hidden">
       
-      <header className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-5 sm:gap-0 relative z-20">
+      {/* 🔹 تم تقليل padding-top و padding-bottom في الجوال من py-8 إلى py-5 */}
+      <header className="max-w-5xl mx-auto px-5 md:px-6 py-5 md:py-8 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 relative z-20">
         <div className="font-bold text-xl tracking-tighter">
           Abbas<span className="text-emerald-500">.</span>
         </div>
-        <nav className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm font-medium text-zinc-400">
+        {/* 🔹 تم تصغير الخط في القائمة للجوال `text-xs sm:text-sm` */}
+        <nav className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-zinc-400">
           <Link href="#projects" className="hover:text-white transition-colors">الأعمال</Link>
           <Link href="/writing" className="hover:text-white transition-colors">المدونة</Link>
           <Link href="#about" className="hover:text-white transition-colors">عني</Link>
@@ -54,8 +55,9 @@ export default async function Home() {
       <main className="w-full">
         
         {/* --- القسم الرئيسي (Hero) --- */}
-        <section className="max-w-5xl mx-auto px-6 py-20 md:py-32 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium mb-6 border border-emerald-500/20">
+        {/* 🔹 تقليل مسافة القسم العلوية من py-20 إلى py-12 للجوال */}
+        <section className="max-w-5xl mx-auto px-5 md:px-6 py-12 md:py-32 relative z-10 text-center md:text-right flex flex-col items-center md:items-start">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs md:text-sm font-medium mb-6 border border-emerald-500/20">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -63,52 +65,52 @@ export default async function Home() {
             متاح للمشاريع الجديدة
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          {/* 🔹 تصغير الخط الأساسي ليصبح `text-4xl` للجوال و يكبر إلى `md:text-6xl` */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
             أهلاً، أنا عباس صاطور. <br />
-            <span className="text-zinc-500">مطور برمجيات يصنع الفارق.</span>
+            <span className="text-zinc-500 block mt-2 md:mt-0 md:inline">مطور برمجيات يصنع الفارق.</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-zinc-400 mb-10 leading-relaxed max-w-2xl">
+          {/* 🔹 تصغير خط الفقرة للجوال `text-base` */}
+          <p className="text-base md:text-xl text-zinc-400 mb-8 md:mb-10 leading-relaxed max-w-2xl">
             أصمم وأبرمج تطبيقات جوال وحاسوب متكاملة من الصفر. أركز على كتابة كود نظيف وتصميم واجهات عصرية تجعل استخدام التطبيق تجربة ممتعة وفعّالة.
           </p>
           
-          <div className="flex flex-wrap gap-4">
-            <Link href="#projects" className="bg-white text-zinc-950 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-200 transition-colors">
+          {/* 🔹 الأزرار أصبحت تأخذ عرض الشاشة بالكامل في الجوال `w-full` وتتوسط `justify-center` */}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full sm:w-auto">
+            <Link href="#projects" className="w-full sm:w-auto justify-center bg-white text-zinc-950 px-6 py-3.5 md:py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-200 transition-colors">
               استكشف أعمالي <ArrowUpLeft size={20} />
             </Link>
-            <Link href="https://github.com/satwrabbas" target="_blank" className="bg-zinc-900 border border-zinc-800 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-zinc-800 transition-colors">
+            <Link href="https://github.com/satwrabbas" target="_blank" className="w-full sm:w-auto justify-center bg-zinc-900 border border-zinc-800 text-white px-6 py-3.5 md:py-3 rounded-xl font-medium flex items-center gap-2 hover:bg-zinc-800 transition-colors">
               <GithubIcon size={20} /> GitHub
             </Link>
           </div>
         </section>
 
-        {/* --- 🌊 قسم المشاريع (الخطوط المتعاكسة) 🌊 --- */}
-        <section id="projects" className="py-24 border-t border-zinc-900 w-full overflow-hidden relative bg-zinc-950">
+        {/* --- 🌊 قسم المشاريع 🌊 --- */}
+        {/* 🔹 تصغير py-24 إلى py-16 للجوال */}
+        <section id="projects" className="py-16 md:py-24 border-t border-zinc-900 w-full overflow-hidden relative bg-zinc-950">
           
-          {/* 🌟 تأثير الخلفية (Tech Grid + Aurora Glow) حافظت عليه لأنه رائع 🌟 */}
           <div className="absolute inset-0 z-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] md:w-[1000px] h-[300px] md:h-[500px] bg-emerald-500/10 blur-[120px] rounded-full opacity-60"></div>
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272a_1px,transparent_1px),linear-gradient(to_bottom,#27272a_1px,transparent_1px)] bg-[size:3rem_3rem] md:bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[1000px] h-[200px] md:h-[500px] bg-emerald-500/10 blur-[100px] md:blur-[120px] rounded-full opacity-60"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272a_1px,transparent_1px),linear-gradient(to_bottom,#27272a_1px,transparent_1px)] bg-[size:2rem_2rem] md:bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_70%,transparent_100%)] opacity-40"></div>
           </div>
 
-          {/* عنوان القسم */}
-          <div className="max-w-5xl mx-auto px-6 mb-16 flex items-center gap-4 relative z-20">
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl">
-              <Code2 className="text-emerald-500" size={28} />
+          <div className="max-w-5xl mx-auto px-5 md:px-6 mb-10 md:mb-16 flex flex-col md:flex-row items-center md:items-start gap-4 relative z-20 text-center md:text-right">
+            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-xl inline-block">
+              <Code2 className="text-emerald-500" size={24} />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-white">معرض الأعمال</h2>
-              <p className="text-zinc-500 text-sm mt-1">أنظمة متكاملة، مواقع ويب، وتطبيقات جوال</p>
+              {/* 🔹 تصغير عنوان القسم */}
+              <h2 className="text-2xl md:text-3xl font-bold text-white">معرض الأعمال</h2>
+              <p className="text-zinc-500 text-xs md:text-sm mt-1">أنظمة متكاملة، مواقع ويب، وتطبيقات جوال</p>
             </div>
           </div>
 
-          <div className="w-full relative z-10 flex flex-col gap-8 md:gap-12 py-4">
-            
-            {/* التدرجات اللونية (Fade Edges) */}
-            <div className="absolute top-0 bottom-0 right-0 w-16 md:w-48 bg-gradient-to-l from-zinc-950 to-transparent z-20 pointer-events-none"></div>
-            <div className="absolute top-0 bottom-0 left-0 w-16 md:w-48 bg-gradient-to-r from-zinc-950 to-transparent z-20 pointer-events-none"></div>
+          <div className="w-full relative z-10 flex flex-col gap-6 md:gap-12 py-4">
+            <div className="absolute top-0 bottom-0 right-0 w-12 md:w-48 bg-gradient-to-l from-zinc-950 to-transparent z-20 pointer-events-none"></div>
+            <div className="absolute top-0 bottom-0 left-0 w-12 md:w-48 bg-gradient-to-r from-zinc-950 to-transparent z-20 pointer-events-none"></div>
 
-            {/* 💻 الشريط الأول: مشاريع الويب وسطح المكتب (يتحرك لليسار) */}
             {desktopProjects.length > 0 && (
               <MarqueeRow direction="left">
                 {desktopProjects.map((project) => (
@@ -117,7 +119,6 @@ export default async function Home() {
               </MarqueeRow>
             )}
 
-            {/* 📱 الشريط الثاني: مشاريع الجوال (يتحرك لليمين وباتجاه معاكس) */}
             {mobileProjects.length > 0 && (
               <MarqueeRow direction="right">
                 {mobileProjects.map((project) => (
@@ -130,24 +131,26 @@ export default async function Home() {
         </section>
 
         {/* --- قسم عنّي --- */}
-        <section id="about" className="max-w-5xl mx-auto px-6 py-24 border-t border-zinc-900 relative z-10">
-          <div className="flex items-center gap-4 mb-12">
-            <User className="text-emerald-500" size={32} />
-            <h2 className="text-3xl font-bold">فلسفتي في العمل</h2>
+        <section id="about" className="max-w-5xl mx-auto px-5 md:px-6 py-16 md:py-24 border-t border-zinc-900 relative z-10">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 mb-8 md:mb-12 text-center md:text-right">
+            <User className="text-emerald-500" size={28} />
+            <h2 className="text-2xl md:text-3xl font-bold">فلسفتي في العمل</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-6 text-zinc-400 leading-relaxed text-lg">
+          {/* 🔹 تقليل gap بين الأعمدة */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center md:text-right">
+            <div className="md:col-span-2 space-y-4 md:space-y-6 text-zinc-400 leading-relaxed text-base md:text-lg">
               <p>بدأت رحلتي في عالم البرمجة بشغف لفهم كيف تعمل الأشياء من الداخل. لم أكتفِ بتعلم كتابة الأكواد، بل ركزت على <strong className="text-white">هندسة البرمجيات</strong> وكيفية بناء أنظمة قابلة للتوسع وتتحمل ضغط العمل.</p>
               <p>أؤمن أن <strong className="text-white">"الكود الجيد يجب أن يقرأ كأنه قصة"</strong>. لذلك أقضي وقتاً طويلاً في التخطيط وبناء هيكلية نظيفة قبل البدء في التنفيذ.</p>
               <p>سواء كنت أطور تطبيقاً للجوال أو برنامجاً للحاسوب، هدفي الدائم هو سد الفجوة بين الأداء التقني العالي والتصميم المريح للعين (UI/UX).</p>
             </div>
             
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 flex flex-col justify-center">
+            {/* 🔹 تقليل الـ padding في مربع المهارات للجوال */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 flex flex-col justify-center items-center md:items-start">
               <h3 className="text-white font-bold mb-4">أدواتي المفضلة</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap justify-center md:justify-start gap-2">
                 {['Next.js', 'Flutter', 'React', 'Supabase', 'Tailwind', 'TypeScript', 'Node.js'].map((skill) => (
-                  <span key={skill} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-sm px-4 py-2 rounded-lg">{skill}</span>
+                  <span key={skill} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs md:text-sm px-3 md:px-4 py-2 rounded-lg">{skill}</span>
                 ))}
               </div>
             </div>
@@ -155,27 +158,28 @@ export default async function Home() {
         </section>
 
         {/* --- قسم التواصل --- */}
-        <section id="contact" className="max-w-5xl mx-auto px-6 py-24 border-t border-zinc-900 text-center relative z-10">
-          <h2 className="text-4xl font-bold text-white mb-6">لنعمل معاً على مشروعك القادم</h2>
-          <p className="text-zinc-400 mb-12 max-w-xl mx-auto text-lg">
+        <section id="contact" className="max-w-5xl mx-auto px-5 md:px-6 py-16 md:py-24 border-t border-zinc-900 text-center relative z-10">
+          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6">لنعمل معاً على مشروعك القادم</h2>
+          <p className="text-sm md:text-lg text-zinc-400 mb-8 md:mb-12 max-w-xl mx-auto">
             سواء كان لديك فكرة تطبيق تود تحويلها لواقع، أو مشروع يحتاج لتطوير، يسعدني تواصلك معي مباشرة.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <a href="https://wa.me/963938457732" target="_blank" rel="noopener noreferrer" className="bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 hover:bg-[#25D366]/20 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 transition-colors">
-              <WhatsAppIcon size={24} /> واتساب
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-4 w-full">
+            <a href="https://wa.me/963938457732" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto justify-center bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 hover:bg-[#25D366]/20 px-5 md:px-6 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold flex items-center gap-2 md:gap-3 transition-colors text-sm md:text-base">
+              <WhatsAppIcon size={20} className="md:w-6 md:h-6" /> واتساب
             </a>
-            <a href="https://t.me/+963938457732" target="_blank" rel="noopener noreferrer" className="bg-[#229ED9]/10 text-[#229ED9] border border-[#229ED9]/20 hover:bg-[#229ED9]/20 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 transition-colors">
-              <TelegramIcon size={24} /> تليجرام
+            <a href="https://t.me/+963938457732" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto justify-center bg-[#229ED9]/10 text-[#229ED9] border border-[#229ED9]/20 hover:bg-[#229ED9]/20 px-5 md:px-6 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold flex items-center gap-2 md:gap-3 transition-colors text-sm md:text-base">
+              <TelegramIcon size={20} className="md:w-6 md:h-6" /> تليجرام
             </a>
-            <a href="mailto:satwrabbas@gmail.com" className="bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 transition-colors">
-              <Mail size={24} /> البريد الإلكتروني
+            <a href="mailto:satwrabbas@gmail.com" className="w-full sm:w-auto justify-center bg-zinc-800 text-white border border-zinc-700 hover:bg-zinc-700 px-5 md:px-6 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-bold flex items-center gap-2 md:gap-3 transition-colors text-sm md:text-base">
+              <Mail size={20} className="md:w-6 md:h-6" /> البريد الإلكتروني
             </a>
           </div>
         </section>
 
-        <footer className="max-w-5xl mx-auto px-6 py-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-500 text-sm relative z-10">
-          <p>© {new Date().getFullYear()} عباس صاطور. جميع الحقوق محفوظة.</p>
+        {/* 🔹 تعديل الفوتر للجوال */}
+        <footer className="max-w-5xl mx-auto px-5 md:px-6 py-6 md:py-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-3 text-zinc-500 text-xs md:text-sm relative z-10">
+          <p className="text-center md:text-right">© {new Date().getFullYear()} عباس صاطور. جميع الحقوق محفوظة.</p>
           <div className="flex gap-4">
             <Link href="https://github.com/satwrabbas" target="_blank" className="hover:text-white transition-colors">
               <GithubIcon size={20} />
