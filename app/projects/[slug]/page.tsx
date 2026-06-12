@@ -12,7 +12,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-// تحديث الـ type ليتوافق مع الـ Promise في إصدارات Next.js الحديثة
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { data: project } = await supabase.from('projects').select('title, tagline').eq('slug', slug).single()
@@ -38,57 +37,51 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   const isNotLive = project.status && project.status.toLowerCase() !== 'live'
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-32 selection:bg-white/20" style={{ '--brand-color': brandColor } as React.CSSProperties}>
+    // 🔹 تقليل pb-32 إلى pb-16 للجوال
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-16 md:pb-32 selection:bg-white/20" style={{ '--brand-color': brandColor } as React.CSSProperties}>
       
-      {/* 🌟 تأثير توهج خلفي يعتمد على لون الهوية 🌟 */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[400px] opacity-20 blur-[150px] pointer-events-none" style={{ backgroundColor: brandColor }}></div>
 
-      <header className="max-w-5xl mx-auto px-6 py-8 relative z-10">
-        <Link href="/#projects" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors">
-          <ArrowRight size={20} />
+      {/* 🔹 تقليل Padding الهيدر */}
+      <header className="max-w-5xl mx-auto px-5 md:px-6 py-6 md:py-8 relative z-10">
+        <Link href="/#projects" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm md:text-base">
+          <ArrowRight size={18} className="md:w-5 md:h-5" />
           <span>العودة للأعمال</span>
         </Link>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 relative z-10">
+      <main className="max-w-5xl mx-auto px-5 md:px-6 relative z-10">
         
-        {/* --- الهيدر الرئيسي للمشروع --- */}
-        <div className="mb-20 text-center md:text-right">
-          <div className="flex justify-center md:justify-start gap-3 mb-6" style={{ color: brandColor }}>
-            {/* 🌟 حل مشكلة الـ Tooltip بلف الأيقونات بـ spans تحمل الـ title 🌟 */}
-            {project.platforms?.includes('Android') && (
-              <span title="Android"><Smartphone size={28} /></span>
-            )}
-            {(project.platforms?.includes('iOS') || project.platforms?.includes('iPhone')) && (
-              <span title="iOS"><Apple size={28} /></span>
-            )}
-            {project.platforms?.includes('Windows') && (
-              <span title="Windows"><Monitor size={28} /></span>
-            )}
-            {project.platforms?.includes('Web') && (
-              <span title="Web"><Globe size={28} /></span>
-            )}
+        {/* 🔹 تقليل مسافة mb-20 إلى mb-12 للجوال */}
+        <div className="mb-12 md:mb-20 text-center md:text-right">
+          <div className="flex justify-center md:justify-start gap-2 md:gap-3 mb-4 md:mb-6" style={{ color: brandColor }}>
+            {project.platforms?.includes('Android') && <span title="Android"><Smartphone size={24} className="md:w-7 md:h-7" /></span>}
+            {(project.platforms?.includes('iOS') || project.platforms?.includes('iPhone')) && <span title="iOS"><Apple size={24} className="md:w-7 md:h-7" /></span>}
+            {project.platforms?.includes('Windows') && <span title="Windows"><Monitor size={24} className="md:w-7 md:h-7" /></span>}
+            {project.platforms?.includes('Web') && <span title="Web"><Globe size={24} className="md:w-7 md:h-7" /></span>}
           </div>
           
-          <div className="flex flex-col md:flex-row items-center md:items-start md:justify-between gap-6 mb-6">
-            <h1 className="text-5xl md:text-7xl font-black text-white leading-tight tracking-tight">
+          <div className="flex flex-col md:flex-row items-center md:items-start md:justify-between gap-4 md:gap-6 mb-4 md:mb-6">
+            {/* 🔹 تصغير العنوان الرئيسي text-4xl للجوال */}
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-tight tracking-tight">
               {project.title}
             </h1>
             {isNotLive && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-500 rounded-full font-bold shadow-lg">
-                <Construction size={18} className="animate-pulse" />
+              <div className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-amber-500/10 border border-amber-500/30 text-amber-500 rounded-full font-bold shadow-lg text-sm md:text-base">
+                <Construction size={16} className="animate-pulse md:w-5 md:h-5" />
                 {project.status}
               </div>
             )}
           </div>
 
-          <p className="text-xl md:text-2xl text-zinc-400 mb-12 leading-relaxed max-w-3xl">
+          {/* 🔹 تصغير الخط text-base للجوال */}
+          <p className="text-base md:text-xl lg:text-2xl text-zinc-400 mb-8 md:mb-12 leading-relaxed max-w-3xl">
             {project.tagline}
           </p>
 
-          {/* صورة الغلاف */}
+          {/* 🔹 تقليل ارتفاع الصورة 250px والاستدارة rounded-2xl للجوال */}
           {(project.thumbnail_url || project.mobile_thumbnail_url) && (
-            <div className="w-full h-[300px] md:h-[500px] lg:h-[600px] rounded-[2rem] overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative">
+            <div className="w-full h-[250px] sm:h-[300px] md:h-[500px] lg:h-[600px] rounded-2xl md:rounded-[2rem] overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative">
               <Image 
                 src={project.thumbnail_url || project.mobile_thumbnail_url} 
                 alt={project.title} 
@@ -101,14 +94,14 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* 🔹 تقليل المسافة بين العمودين gap-8 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
           
-          {/* --- الشريط الجانبي (التفاصيل والروابط) --- */}
-          <aside className="lg:col-span-4 space-y-8 order-2 lg:order-1">
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 sticky top-8 backdrop-blur-sm shadow-xl">
+          <aside className="lg:col-span-4 space-y-6 md:space-y-8 order-2 lg:order-1">
+            {/* 🔹 تقليل p-8 إلى p-5 */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl md:rounded-3xl p-5 md:p-8 sticky top-8 backdrop-blur-sm shadow-xl">
               
-              {/* تفاصيل المشروع السريعة */}
-              <div className="mb-8 space-y-4 border-b border-zinc-800 pb-6">
+              <div className="mb-6 md:mb-8 space-y-3 md:space-y-4 border-b border-zinc-800 pb-5 md:pb-6 text-sm md:text-base">
                 {project.category && (
                   <div className="flex items-center gap-3 text-zinc-400">
                     <LayoutGrid size={18} style={{ color: brandColor }} />
@@ -129,13 +122,13 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                 )}
               </div>
 
-              {/* التقنيات */}
               {project.tech_stack && project.tech_stack.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-white font-bold mb-4 text-lg">التقنيات المستخدمة</h3>
+                <div className="mb-6 md:mb-8">
+                  <h3 className="text-white font-bold mb-3 md:mb-4 text-base md:text-lg">التقنيات المستخدمة</h3>
+                  {/* 🔹 تقليل المسافة والأحجام للأزرار */}
                   <div className="flex flex-wrap gap-2">
                     {project.tech_stack.map((tech: string, i: number) => (
-                      <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-sm px-4 py-2 rounded-xl">
+                      <span key={i} className="bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl">
                         {tech}
                       </span>
                     ))}
@@ -143,103 +136,100 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                 </div>
               )}
 
-              {/* الأزرار والروابط الذكية */}
-              <div className="flex flex-col gap-3 pt-4">
+              {/* 🔹 تصغير الـ padding للأزرار `py-3.5` وتقليل الاستدارة `rounded-xl` */}
+              <div className="flex flex-col gap-3 pt-2 md:pt-4 text-sm md:text-base">
                 {project.live_url && (
-                  <Link href={project.live_url} target="_blank" className="font-bold rounded-2xl px-4 py-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] text-white shadow-lg" style={{ backgroundColor: brandColor, boxShadow: `0 10px 30px -10px ${brandColor}` }}>
-                    <Globe size={20} /><span>زيارة الموقع المباشر</span>
+                  <Link href={project.live_url} target="_blank" className="font-bold rounded-xl md:rounded-2xl px-4 py-3.5 md:py-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] text-white shadow-lg" style={{ backgroundColor: brandColor, boxShadow: `0 10px 30px -10px ${brandColor}` }}>
+                    <Globe size={18} className="md:w-5 md:h-5" /><span>زيارة الموقع المباشر</span>
                   </Link>
                 )}
-                
                 {project.app_store_url && (
-                  <Link href={project.app_store_url} target="_blank" className="bg-black border border-zinc-800 hover:bg-zinc-900 text-white font-bold rounded-2xl px-4 py-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
-                    <Apple size={22} /><span>App Store</span>
+                  <Link href={project.app_store_url} target="_blank" className="bg-black border border-zinc-800 hover:bg-zinc-900 text-white font-bold rounded-xl md:rounded-2xl px-4 py-3.5 md:py-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
+                    <Apple size={20} className="md:w-[22px] md:h-[22px]" /><span>App Store</span>
                   </Link>
                 )}
-
                 {project.play_store_url && (
-                  <Link href={project.play_store_url} target="_blank" className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-[#00ff7f] font-bold rounded-2xl px-4 py-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
-                    <Store size={20} /><span>Google Play</span>
+                  <Link href={project.play_store_url} target="_blank" className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-[#00ff7f] font-bold rounded-xl md:rounded-2xl px-4 py-3.5 md:py-4 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
+                    <Store size={18} className="md:w-5 md:h-5" /><span>Google Play</span>
                   </Link>
                 )}
-
                 {project.download_url && (
-                  <Link href={project.download_url} target="_blank" className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl px-4 py-4 flex items-center justify-center gap-2 transition-colors">
-                    <Download size={20} /><span>تحميل التطبيق</span>
+                  <Link href={project.download_url} target="_blank" className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl md:rounded-2xl px-4 py-3.5 md:py-4 flex items-center justify-center gap-2 transition-colors">
+                    <Download size={18} className="md:w-5 md:h-5" /><span>تحميل التطبيق</span>
                   </Link>
                 )}
-
                 {project.github_url && (
-                  <Link href={project.github_url} target="_blank" className="bg-zinc-950 border border-zinc-800 hover:border-zinc-600 text-white font-bold rounded-2xl px-4 py-4 flex items-center justify-center gap-2 transition-colors mt-2">
-                    <ExternalLink size={20} /><span>استعراض الكود المصدري</span>
+                  <Link href={project.github_url} target="_blank" className="bg-zinc-950 border border-zinc-800 hover:border-zinc-600 text-white font-bold rounded-xl md:rounded-2xl px-4 py-3.5 md:py-4 flex items-center justify-center gap-2 transition-colors mt-2">
+                    <ExternalLink size={18} className="md:w-5 md:h-5" /><span>استعراض الكود المصدري</span>
                   </Link>
                 )}
               </div>
             </div>
           </aside>
 
-          {/* --- المحتوى الرئيسي (المقال والنقاط) --- */}
           <article className="lg:col-span-8 order-1 lg:order-2">
             
-            {/* رأي العميل (إن وجد) */}
             {project.client_name && project.testimonial && (
-              <div className="mb-16 bg-zinc-900/40 border border-zinc-800 rounded-3xl p-8 md:p-10 relative">
-                <Quote size={40} className="absolute top-6 right-6 opacity-20" style={{ color: brandColor }} />
-                <p className="text-xl md:text-2xl font-medium text-white leading-relaxed mb-6 italic relative z-10">
+              // 🔹 تقليل p-10 إلى p-6 للجوال 
+              <div className="mb-10 md:mb-16 bg-zinc-900/40 border border-zinc-800 rounded-2xl md:rounded-3xl p-6 md:p-10 relative">
+                <Quote size={32} className="absolute top-4 right-4 md:top-6 md:right-6 opacity-20 md:w-10 md:h-10" style={{ color: brandColor }} />
+                <p className="text-lg md:text-2xl font-medium text-white leading-relaxed mb-6 italic relative z-10">
                   "{project.testimonial}"
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-lg" style={{ backgroundColor: brandColor }}>
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-white text-base md:text-lg" style={{ backgroundColor: brandColor }}>
                     {project.client_name.charAt(0)}
                   </div>
                   <div>
-                    <h4 className="text-white font-bold">{project.client_name}</h4>
-                    <p className="text-zinc-500 text-sm">العميل</p>
+                    <h4 className="text-white font-bold text-sm md:text-base">{project.client_name}</h4>
+                    <p className="text-zinc-500 text-xs md:text-sm">العميل</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* وصف المشروع (Markdown) */}
             {project.description && (
-              <div className="prose prose-invert max-w-none prose-lg prose-p:leading-relaxed mb-20 text-zinc-300 prose-a:text-[var(--brand-color)]">
+              // 🔹 تصغير نص الوصف لـ prose-base للجوال و mb-12
+              <div className="prose prose-base md:prose-lg prose-invert max-w-none prose-p:leading-relaxed mb-12 md:mb-20 text-zinc-300 prose-a:text-[var(--brand-color)]">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {project.description}
                 </ReactMarkdown>
               </div>
             )}
 
-            {/* نقاط الشرح (Features) */}
             {features.length > 0 && (
-              <div className="space-y-32">
+              // 🔹 تقليل المسافة بين الميزات للجوال space-y-16
+              <div className="space-y-16 md:space-y-32">
                 {features.map((feature: any, index: number) => (
                   <section key={index} className="relative">
                     
-                    <div className="absolute -top-16 -right-8 text-[10rem] font-black opacity-10 select-none pointer-events-none z-0" style={{ color: brandColor }}>
+                    {/* 🔹 تصغير الرقم الخلفي للجوال */}
+                    <div className="absolute -top-6 -right-2 md:-top-16 md:-right-8 text-[6rem] md:text-[10rem] font-black opacity-10 select-none pointer-events-none z-0" style={{ color: brandColor }}>
                       {String(index + 1).padStart(2, '0')}
                     </div>
 
                     <div className="relative z-10">
-                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight">
+                      <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 md:mb-6 leading-tight">
                         {feature.title}
                       </h3>
                       
-                      <div className="prose prose-invert max-w-none prose-lg text-zinc-400 mb-10 leading-relaxed">
+                      <div className="prose prose-base md:prose-lg prose-invert max-w-none text-zinc-400 mb-6 md:mb-10 leading-relaxed">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {feature.content}
                         </ReactMarkdown>
                       </div>
 
                       {feature.video_url && (
-                        <div className="rounded-3xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl mb-8">
+                        <div className="rounded-xl md:rounded-3xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl mb-6 md:mb-8">
                           <video src={feature.video_url} autoPlay loop muted playsInline controls className="w-full h-auto max-h-[600px] object-cover" />
                         </div>
                       )}
 
                       {feature.image_urls && feature.image_urls.length > 0 && (
-                        <div className={`grid gap-4 ${feature.image_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-2'}`}>
+                        // 🔹 جعل الصور فوق بعضها في الجوال `grid-cols-1` وبجانب بعضها في الأكبر `sm:grid-cols-2`
+                        <div className={`grid gap-3 md:gap-4 ${feature.image_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
                           {feature.image_urls.map((imgUrl: string, imgIndex: number) => (
-                            <div key={imgIndex} className="relative aspect-video rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group">
+                            <div key={imgIndex} className="relative aspect-video rounded-xl md:rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group">
                               <Image src={imgUrl} alt={`${feature.title} - لقطة ${imgIndex + 1}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                             </div>
                           ))}
