@@ -24,20 +24,46 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-// مُكوّن داخلي لعرض الوسائط بشكل نظيف
-const FeatureMedia = ({ feature }: { feature: ProjectFeature }) => {
+// 🌟 مُكوّن الوسائط المُحسّن: يتفاعل مع نوع التخطيط ليأخذ أبعاداً مثالية 🌟
+const FeatureMedia = ({ feature, layout }: { feature: ProjectFeature; layout: string }) => {
+  const isHero = layout === 'hero'
+
   if (feature.video_url) {
     return (
-      <div className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative w-full h-full min-h-[300px]">
-        <video src={feature.video_url} autoPlay loop muted playsInline className="w-full h-full object-cover absolute inset-0" />
+      <div className={`relative w-full h-full overflow-hidden bg-zinc-900 ${isHero ? 'absolute inset-0 z-0' : 'rounded-2xl border border-zinc-800 shadow-2xl'}`}>
+        <video src={feature.video_url} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+        {isHero && <div className="absolute inset-0 bg-zinc-950/30 mix-blend-multiply" />}
       </div>
     )
   }
+
   if (feature.image_urls && feature.image_urls.length > 0) {
+    // 1. حالة الـ Hero: الصور تمتد كخلفية كاملة
+    if (isHero) {
+      return (
+        <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
+          {feature.image_urls.length === 1 ? (
+            <Image src={feature.image_urls[0]} alt={feature.title} fill priority sizes="100vw" className="object-cover" />
+          ) : (
+            <div className="grid grid-cols-2 w-full h-full">
+              {feature.image_urls.slice(0, 2).map((imgUrl, idx) => (
+                <div key={idx} className="relative w-full h-full">
+                  <Image src={imgUrl} alt={feature.title} fill sizes="50vw" className="object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+          {/* تظليل داكن لضمان بروز النص */}
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
+        </div>
+      )
+    }
+
+    // 2. التخطيطات الأخرى: شبكة متجاوبة بنسب بصرية صحيحة
     return (
       <div className={`grid gap-4 w-full h-full ${feature.image_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
         {feature.image_urls.map((imgUrl, idx) => (
-          <div key={idx} className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-xl min-h-[300px]">
+          <div key={idx} className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-xl w-full h-full min-h-[250px] md:min-h-0">
             <Image src={imgUrl} alt={feature.title} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover hover:scale-105 transition-transform duration-700" />
           </div>
         ))}
@@ -49,14 +75,12 @@ const FeatureMedia = ({ feature }: { feature: ProjectFeature }) => {
 
 export default async function ProjectDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-
   const { data, error } = await supabase.from('projects').select('*').eq('slug', slug).single()
 
   if (error || !data) notFound()
 
   const project: Project = data 
   
-  // 🌟 معالجة التوافقية: إذا لم يكن هناك فصول، نحول النقاط القديمة إلى فصل وهمي
   const chapters: ProjectChapter[] = (project.chapters && project.chapters.length > 0) 
     ? project.chapters 
     : (project.features && project.features.length > 0)
@@ -69,10 +93,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-20 md:pb-32 selection:bg-white/20" style={{ '--brand-color': brandColor } as React.CSSProperties}>
       
-      {/* 🔹 تأثير الخلفية العلوي */}
+      {/* تأثير الخلفية العلوي */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[400px] opacity-20 blur-[150px] pointer-events-none" style={{ backgroundColor: brandColor }}></div>
 
-      {/* 🔹 الهيدر */}
       <header className="max-w-6xl mx-auto px-5 md:px-6 py-6 md:py-8 relative z-10">
         <Link href="/#projects" className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm md:text-base font-medium">
           <ArrowRight size={18} /> العودة للأعمال
@@ -81,7 +104,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
       <main className="max-w-6xl mx-auto px-5 md:px-6 relative z-10">
         
-        {/* 🔹 قسم العنوان الرئيسي */}
+        {/* قسم العنوان الرئيسي */}
         <div className="mb-16 md:mb-24 text-center md:text-right max-w-4xl">
           <div className="flex justify-center md:justify-start gap-3 mb-6" style={{ color: brandColor }}>
             {project.platforms?.includes('Android') && <Smartphone size={28} />}
@@ -110,7 +133,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
-          {/* 🔹 الشريط الجانبي (التفاصيل والروابط) */}
+          {/* الشريط الجانبي */}
           <aside className="lg:col-span-4 space-y-8 order-2 lg:order-1">
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 sticky top-8 backdrop-blur-sm shadow-xl">
               
@@ -139,7 +162,7 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
             </div>
           </aside>
 
-          {/* 🔹 المحتوى الرئيسي (دراسة الحالة والفصول) */}
+          {/* المحتوى الرئيسي والفصول */}
           <article className="lg:col-span-8 order-1 lg:order-2">
             
             {project.client_name && project.testimonial && (
@@ -159,13 +182,11 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               </div>
             )}
 
-            {/* 🌟 بناء الفصول ودراسة الحالة 🌟 */}
             {chapters.length > 0 && (
               <div className="space-y-24">
                 {chapters.map((chapter, chapterIndex) => (
                   <div key={chapter.id} className="relative">
                     
-                    {/* رأس الفصل */}
                     <div className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/50 py-6 mb-12 flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-lg shadow-[0_0_15px_rgba(0,0,0,0.5)] text-white" style={{ backgroundColor: brandColor }}>
                         {chapterIndex + 1}
@@ -176,43 +197,49 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                       </div>
                     </div>
 
-                    {/* نقاط الفصل (الميزات) */}
-                    <div className="space-y-20">
-                      {chapter.features.map((feature, featureIndex) => {
+                    <div className="space-y-24">
+                      {chapter.features.map((feature) => {
                         const layout = feature.layout_type || 'default'
+                        const hasMedia = !!(feature.video_url || (feature.image_urls && feature.image_urls.length > 0))
 
-                        // 1. التخطيط الافتراضي (نص وفوقه/تحته وسائط)
+                        {/* 🌟 1. التخطيط الافتراضي: النص أولاً ثم الصورة أدناه 🌟 */}
                         if (layout === 'default') {
                           return (
-                            <section key={feature.id}>
+                            <section key={feature.id} className="space-y-6">
                               <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">{feature.title}</h3>
                               <div className="prose prose-lg prose-invert max-w-none text-zinc-400 mb-8"><ReactMarkdown remarkPlugins={[remarkGfm]}>{feature.content}</ReactMarkdown></div>
-                              <div className="h-[400px]"><FeatureMedia feature={feature} /></div>
+                              {hasMedia && (
+                                <div className="w-full aspect-[16/10] md:aspect-video relative rounded-3xl overflow-hidden shadow-2xl">
+                                  <FeatureMedia feature={feature} layout={layout} />
+                                </div>
+                              )}
                             </section>
                           )
                         }
 
-                        // 2. تخطيط الشاشة الكاملة (Hero)
+                        {/* 🌟 2. تخطيط هيرو السينمائي: صورة كاملة مع نص متراكب 🌟 */}
                         if (layout === 'hero') {
                           return (
-                            <section key={feature.id} className="relative h-[600px] rounded-3xl overflow-hidden border border-zinc-800 group">
-                              <FeatureMedia feature={feature} />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-8 md:p-12 z-10">
-                                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">{feature.title}</h3>
-                                <div className="prose prose-lg prose-invert max-w-2xl text-zinc-300 drop-shadow-md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{feature.content}</ReactMarkdown></div>
+                            <section key={feature.id} className="relative min-h-[500px] md:min-h-[600px] rounded-3xl overflow-hidden border border-zinc-800 group flex items-end">
+                              <FeatureMedia feature={feature} layout={layout} />
+                              <div className="relative z-10 w-full bg-gradient-to-t from-zinc-950 via-zinc-950/90 to-transparent p-8 md:p-12 lg:p-16">
+                                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 drop-shadow-xl">{feature.title}</h3>
+                                <div className="prose prose-lg prose-invert max-w-3xl text-zinc-200 drop-shadow-md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{feature.content}</ReactMarkdown></div>
                               </div>
                             </section>
                           )
                         }
 
-                        // 3. تخطيط جانبي (يمين أو يسار)
+                        {/* 🌟 3 & 4. التخطيط الجانبي (يسار/يمين): شبكة متجاوبة 🌟 */}
                         const isImageLeft = layout === 'image_left'
                         return (
-                          <section key={feature.id} className="flex flex-col md:flex-row gap-8 items-center">
-                            <div className={`w-full md:w-1/2 h-[350px] ${isImageLeft ? 'md:order-1' : 'md:order-2'}`}>
-                              <FeatureMedia feature={feature} />
-                            </div>
-                            <div className={`w-full md:w-1/2 ${isImageLeft ? 'md:order-2' : 'md:order-1'}`}>
+                          <section key={feature.id} className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                            {hasMedia && (
+                              <div className={`w-full aspect-[4/3] relative rounded-3xl overflow-hidden shadow-xl ${isImageLeft ? 'order-1' : 'order-1 lg:order-2'}`}>
+                                <FeatureMedia feature={feature} layout={layout} />
+                              </div>
+                            )}
+                            <div className={`w-full ${!hasMedia ? 'lg:col-span-2' : ''} ${isImageLeft ? 'order-2' : 'order-2 lg:order-1'}`}>
                               <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">{feature.title}</h3>
                               <div className="prose prose-lg prose-invert text-zinc-400"><ReactMarkdown remarkPlugins={[remarkGfm]}>{feature.content}</ReactMarkdown></div>
                             </div>
