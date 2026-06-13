@@ -71,7 +71,7 @@ export default async function Home() {
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
-            أهلاً، أنا عباس صاطور. <br />
+            أهلاً، أنا المبرمج عباس صاطور. <br />
             <span className="text-zinc-500 block mt-2 md:mt-0 md:inline">مطور برمجيات يصنع الفارق.</span>
           </h1>
           

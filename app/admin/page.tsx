@@ -51,7 +51,7 @@ export default function AdminDashboard() {
       {isLoading ? (
         <div className="text-zinc-500 animate-pulse">جاري تحميل الإحصائيات...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* بطاقة المشاريع */}
           <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex items-center justify-between">
             <div>

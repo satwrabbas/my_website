@@ -1,3 +1,4 @@
+//app\admin\projects\page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -143,10 +144,10 @@ export default function ProjectsPage() {
                     {/* عمود المنصات */}
                     <td className="p-5">
                       <div className="flex gap-1.5 text-zinc-400">
-                        {project.platforms?.includes('Web') && <Globe size={16} title="ويب" />}
-                        {project.platforms?.includes('Windows') && <Monitor size={16} title="ويندوز" />}
-                        {project.platforms?.includes('Android') && <Smartphone size={16} title="أندرويد" />}
-                        {project.platforms?.includes('iOS') && <Apple size={16} title="iOS" />}
+                        {project.platforms?.includes('Web') && <span title="ويب"><Globe size={16} /></span>}
+                        {project.platforms?.includes('Windows') && <span title="ويندوز"><Monitor size={16} /></span>}
+                        {project.platforms?.includes('Android') && <span title="أندرويد"><Smartphone size={16} /></span>}
+                        {project.platforms?.includes('iOS') && <span title="iOS"><Apple size={16} /></span>}
                         {(!project.platforms || project.platforms.length === 0) && <span className="text-xs text-zinc-600">—</span>}
                       </div>
                     </td>
