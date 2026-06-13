@@ -1,349 +1,217 @@
-// app/admin/projects/new/page.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { ArrowRight, Save, Image as ImageIcon, Video, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { Plus, Edit2, Trash2, Globe, Monitor, Smartphone, Apple, Star, Loader2, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 
-// 👈 استيراد المكون الجديد والواجهة الخاصة به
-import CaseStudyBuilder, { ProjectFormChapter } from '@/components/admin/CaseStudyBuilder'
-
-interface ProjectFormValues {
+interface Project {
+  id: string;
   title: string;
   slug: string;
-  tagline: string;
-  description: string;
-  tech_stack: string;
-  platforms: string[];
-  github_url: string;
-  download_url: string;
-  live_url: string;
-  play_store_url: string;
-  app_store_url: string;
-  role: string;
   category: string;
-  duration: string;
-  client_name: string;
-  testimonial: string;
+  platforms: string[];
   status: string;
   is_featured: boolean;
-  brand_color: string;
+  thumbnail_url?: string;
+  mobile_thumbnail_url?: string;
 }
 
-export default function NewProjectPage() {
-  const router = useRouter()
+export default function ProjectsPage() {
   const supabase = createClient()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
-  const [demoFile, setDemoFile] = useState<File | null>(null)
-  const [demoPreview, setDemoPreview] = useState<string | null>(null)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
-  const [mobileThumbnailFile, setMobileThumbnailFile] = useState<File | null>(null)
-  const [mobileThumbnailPreview, setMobileThumbnailPreview] = useState<string | null>(null)
-  const [mobileDemoFile, setMobileDemoFile] = useState<File | null>(null)
-  const [mobileDemoPreview, setMobileDemoPreview] = useState<string | null>(null)
-
-  // 👈 استبدال حالة features القديمة بحالة chapters الجديدة
-  const [chapters, setChapters] = useState<ProjectFormChapter[]>([])
-  
-  const { register, handleSubmit, watch, setValue } = useForm<ProjectFormValues>({
-    defaultValues: {
-      platforms: [],
-      brand_color: '#10b981' 
-    }
-  })
-
-  const brandColorValue = watch('brand_color') || '#10b981'
-  const selectedPlatforms = watch('platforms') || []
-  const hasDesktop = selectedPlatforms.includes('Web') || selectedPlatforms.includes('Windows')
-  const hasMobile = selectedPlatforms.includes('Android') || selectedPlatforms.includes('iOS')
-
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { const file = e.target.files[0]; setThumbnailFile(file); setThumbnailPreview(URL.createObjectURL(file)) } }
-  const handleDemoChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { const file = e.target.files[0]; setDemoFile(file); setDemoPreview(URL.createObjectURL(file)) } }
-  const handleMobileThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { const file = e.target.files[0]; setMobileThumbnailFile(file); setMobileThumbnailPreview(URL.createObjectURL(file)) } }
-  const handleMobileDemoChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files[0]) { const file = e.target.files[0]; setMobileDemoFile(file); setMobileDemoPreview(URL.createObjectURL(file)) } }
-
-  const uploadFile = async (file: File, folder: string): Promise<string> => {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${folder}/${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
-    const { error } = await supabase.storage.from('project-assets').upload(fileName, file)
-    if (error) throw error
-    const { data } = supabase.storage.from('project-assets').getPublicUrl(fileName)
-    return data.publicUrl
-  }
-
-  const onSubmit = async (data: ProjectFormValues) => {
-    setIsSubmitting(true)
+  const fetchProjects = async () => {
     try {
-      const thumbnailUrl = thumbnailFile ? await uploadFile(thumbnailFile, 'thumbnails') : null
-      const demoUrl = demoFile ? await uploadFile(demoFile, 'demos') : null
-      const mobileThumbnailUrl = mobileThumbnailFile ? await uploadFile(mobileThumbnailFile, 'thumbnails/mobile') : null
-      const mobileDemoUrl = mobileDemoFile ? await uploadFile(mobileDemoFile, 'demos/mobile') : null
-      
-      // 👈 معالجة الفصول (Chapters) والنقاط بداخلها
-      const processedChapters = await Promise.all(
-        chapters.map(async (chapter) => {
-          const processedFeatures = await Promise.all(
-            chapter.features.map(async (feature) => {
-              const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : null;
-              const image_urls = await Promise.all(feature.imageFiles.map(img => uploadFile(img.file!, 'features/images')));
-              
-              return { 
-                id: feature.id,
-                title: feature.title, 
-                content: feature.content, 
-                layout_type: feature.layout_type, // 👈 حفظ نوع التخطيط
-                video_url, 
-                image_urls 
-              }
-            })
-          )
-
-          return {
-            id: chapter.id,
-            title: chapter.title,
-            description: chapter.description,
-            features: processedFeatures
-          }
-        })
-      )
-
-      const techStackArray = data.tech_stack ? data.tech_stack.split(',').map((s) => s.trim()) : []
-
-      const { error } = await supabase.from('projects').insert([
-        {
-          title: data.title,
-          slug: data.slug,
-          tagline: data.tagline,
-          description: data.description,
-          tech_stack: techStackArray,
-          platforms: data.platforms || [], 
-          
-          github_url: data.github_url,
-          download_url: data.download_url,
-          live_url: data.live_url,
-          play_store_url: data.play_store_url,
-          app_store_url: data.app_store_url,
-          
-          role: data.role,
-          category: data.category,
-          duration: data.duration,
-          client_name: data.client_name,
-          testimonial: data.testimonial,
-          
-          status: data.status || 'Live',
-          is_featured: data.is_featured || false,
-          brand_color: data.brand_color || '#10b981',
-
-          thumbnail_url: thumbnailUrl,
-          demo_url: demoUrl,
-          mobile_thumbnail_url: mobileThumbnailUrl,
-          mobile_demo_url: mobileDemoUrl,
-          
-          chapters: processedChapters, // 👈 حفظ الفصول في العمود الجديد
-        }
-      ])
+      setIsLoading(true)
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, title, slug, category, platforms, status, is_featured, thumbnail_url, mobile_thumbnail_url')
+        .order('created_at', { ascending: false })
 
       if (error) throw error
-      router.push('/admin/projects')
-    } catch (error: unknown) {
-      alert('حدث خطأ أثناء الرفع: ' + (error as Error).message)
+      setProjects(data || [])
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+      alert('حدث خطأ أثناء جلب قائمة المشاريع.')
     } finally {
-      setIsSubmitting(false)
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`هل أنت متأكد من رغبتك في حذف المشروع "${title}"؟`)) return
+
+    try {
+      setIsDeleting(id)
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      setProjects(projects.filter((p) => p.id !== id))
+    } catch (error: unknown) {
+      alert('حدث خطأ أثناء حذف المشروع: ' + (error as Error).message)
+    } finally {
+      setIsDeleting(null)
     }
   }
 
   return (
-    <div className="max-w-5xl mx-auto pb-20">
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/admin/projects" className="text-zinc-500 hover:text-white transition-colors">
-          <ArrowRight size={24} />
+    <div className="max-w-6xl mx-auto pb-20">
+      
+      {/* رأس الصفحة */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-white">المشاريع والتطبيقات</h1>
+          <p className="text-zinc-400 text-sm mt-1">إدارة وتحرير كافة المشاريع المسجلة في معرض أعمالك.</p>
+        </div>
+        <Link 
+          href="/admin/projects/new" 
+          className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-2xl flex items-center justify-center gap-2 font-semibold transition-colors shadow-[0_0_20px_rgba(16,185,129,0.2)] self-start sm:self-auto"
+        >
+          <Plus size={20} />
+          <span>إضافة مشروع جديد</span>
         </Link>
-        <h1 className="text-3xl font-bold">إضافة مشروع جديد</h1>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        
-        {/* --- 1. تفاصيل المشروع الأساسية والمنصات --- */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
-          <h2 className="text-xl font-bold text-white border-b border-zinc-800 pb-4 mb-6">المعلومات الأساسية</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div><label className="block text-zinc-400 text-sm mb-2">اسم المشروع</label><input {...register('title', { required: true })} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-            <div><label className="block text-zinc-400 text-sm mb-2">رابط الصفحة (Slug)</label><input {...register('slug', { required: true })} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-          </div>
+      {/* المحتوى الرئيسي */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20 text-zinc-400">
+          <Loader2 size={36} className="animate-spin text-emerald-500 ml-3" />
+          <span>جاري تحميل قائمة المشاريع...</span>
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="text-center py-20 border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/50">
+          <p className="text-zinc-500 text-lg mb-4">لم تقم بإضافة أي مشاريع حتى الآن.</p>
+          <Link 
+            href="/admin/projects/new" 
+            className="inline-flex items-center gap-2 text-emerald-500 hover:text-emerald-400 font-medium"
+          >
+            <span>أضف مشروعك الأول من هنا</span>
+            <Plus size={18} />
+          </Link>
+        </div>
+      ) : (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-800 bg-zinc-900/50 text-zinc-400 text-sm">
+                  <th className="p-5 font-medium">المشروع</th>
+                  <th className="p-5 font-medium">التصنيف</th>
+                  <th className="p-5 font-medium">المنصات</th>
+                  <th className="p-5 font-medium">الحالة</th>
+                  <th className="p-5 font-medium">مميز</th>
+                  <th className="p-5 font-medium text-left">خيارات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800 text-zinc-300">
+                {projects.map((project) => (
+                  <tr key={project.id} className="hover:bg-zinc-900/30 transition-colors">
+                    {/* عمود تفاصيل المشروع والاسم */}
+                    <td className="p-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg bg-zinc-950 overflow-hidden border border-zinc-800 flex items-center justify-center shrink-0">
+                          {(project.thumbnail_url || project.mobile_thumbnail_url) ? (
+                            <img 
+                              src={project.thumbnail_url || project.mobile_thumbnail_url} 
+                              alt={project.title} 
+                              className="w-full h-full object-cover" 
+                            />
+                          ) : (
+                            <Monitor size={20} className="text-zinc-600" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white">{project.title}</div>
+                          <div className="text-xs text-zinc-500">/{project.slug}</div>
+                        </div>
+                      </div>
+                    </td>
 
-          <div><label className="block text-zinc-400 text-sm mb-2">وصف مختصر (يظهر في البطاقة)</label><input {...register('tagline', { required: true })} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-          <div><label className="block text-zinc-400 text-sm mb-2">مقدمة المشروع (يدعم Markdown)</label><textarea {...register('description')} rows={4} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" /></div>
+                    {/* عمود التصنيف */}
+                    <td className="p-5 text-sm">{project.category || '—'}</td>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-emerald-400 text-sm mb-3 font-medium">المنصات المدعومة (اختر لفتح الوسائط):</label>
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 px-4 py-2 rounded-xl cursor-pointer hover:border-emerald-500 transition-colors">
-                  <input type="checkbox" value="Web" {...register('platforms')} className="w-4 h-4 accent-emerald-500" /> <Globe size={16} className="text-zinc-400"/> ويب
-                </label>
-                <label className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 px-4 py-2 rounded-xl cursor-pointer hover:border-emerald-500 transition-colors">
-                  <input type="checkbox" value="Windows" {...register('platforms')} className="w-4 h-4 accent-emerald-500" /> <Monitor size={16} className="text-zinc-400"/> ويندوز
-                </label>
-                <label className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 px-4 py-2 rounded-xl cursor-pointer hover:border-emerald-500 transition-colors">
-                  <input type="checkbox" value="Android" {...register('platforms')} className="w-4 h-4 accent-emerald-500" /> <Smartphone size={16} className="text-zinc-400"/> أندرويد
-                </label>
-                <label className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 px-4 py-2 rounded-xl cursor-pointer hover:border-emerald-500 transition-colors">
-                  <input type="checkbox" value="iOS" {...register('platforms')} className="w-4 h-4 accent-emerald-500" /> <Apple size={16} className="text-zinc-400"/> iOS
-                </label>
-              </div>
-            </div>
+                    {/* عمود المنصات */}
+                    <td className="p-5">
+                      <div className="flex gap-1.5 text-zinc-400">
+                        {project.platforms?.includes('Web') && <Globe size={16} title="ويب" />}
+                        {project.platforms?.includes('Windows') && <Monitor size={16} title="ويندوز" />}
+                        {project.platforms?.includes('Android') && <Smartphone size={16} title="أندرويد" />}
+                        {project.platforms?.includes('iOS') && <Apple size={16} title="iOS" />}
+                        {(!project.platforms || project.platforms.length === 0) && <span className="text-xs text-zinc-600">—</span>}
+                      </div>
+                    </td>
 
-            <div className="space-y-4">
-              <div><label className="block text-zinc-400 text-sm mb-2">التقنيات (مفصولة بفاصلة)</label><input {...register('tech_stack')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-              <div><label className="block text-zinc-400 text-sm mb-2">تصنيف المشروع (Category)</label><input {...register('category')} placeholder="مثل: متجر إلكتروني" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-            </div>
-          </div>
+                    {/* عمود الحالة */}
+                    <td className="p-5">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
+                        project.status === 'Live' ? 'bg-emerald-500/10 text-emerald-500' :
+                        project.status === 'In Progress' ? 'bg-amber-500/10 text-amber-500' :
+                        'bg-blue-500/10 text-blue-500'
+                      }`}>
+                        {project.status === 'Live' ? 'Live (مكتمل)' :
+                         project.status === 'In Progress' ? 'In Progress' : 'Beta'}
+                      </span>
+                    </td>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-zinc-800">
-            <div><label className="block text-zinc-400 text-sm mb-2">دورك في المشروع (Role)</label><input {...register('role')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-            <div><label className="block text-zinc-400 text-sm mb-2">مدة الإنجاز (Duration)</label><input {...register('duration')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
+                    {/* عمود التميز */}
+                    <td className="p-5">
+                      {project.is_featured ? (
+                        <Star size={18} className="text-yellow-500 fill-yellow-500" />
+                      ) : (
+                        <Star size={18} className="text-zinc-700" />
+                      )}
+                    </td>
+
+                    {/* عمود خيارات التحكم */}
+                    <td className="p-5 text-left">
+                      <div className="flex items-center justify-end gap-3">
+                        <a 
+                          href={`/projects/${project.slug}`} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="text-zinc-500 hover:text-white p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                          title="عرض المعاينة"
+                        >
+                          <ExternalLink size={18} />
+                        </a>
+                        <Link 
+                          href={`/admin/projects/${project.id}/edit`} 
+                          className="text-zinc-400 hover:text-emerald-500 p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                          title="تعديل"
+                        >
+                          <Edit2 size={18} />
+                        </Link>
+                        <button 
+                          onClick={() => handleDelete(project.id, project.title)}
+                          disabled={isDeleting === project.id}
+                          className="text-zinc-500 hover:text-red-500 p-2 hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-50"
+                          title="حذف"
+                        >
+                          {isDeleting === project.id ? (
+                            <Loader2 size={18} className="animate-spin text-red-500" />
+                          ) : (
+                            <Trash2 size={18} />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-
-        {/* --- 2. قسم الوسائط المزدوجة --- */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-          <h2 className="text-xl font-bold mb-6 text-white border-b border-zinc-800 pb-4">الوسائط والمظهر</h2>
-          
-          {!hasDesktop && !hasMobile && (
-            <div className="text-center py-8 text-zinc-500 border-2 border-dashed border-zinc-800 rounded-2xl bg-zinc-950">
-              يرجى تحديد منصة واحدة على الأقل لإظهار خيارات رفع الوسائط.
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {hasDesktop && (
-              <div className="space-y-4 animate-in fade-in duration-500">
-                <h3 className="text-emerald-500 font-medium flex items-center gap-2"><Monitor size={18} /> وسائط الويب/سطح المكتب (عرضية)</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
-                    {thumbnailPreview ? <img src={thumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">
-                      صورة الغلاف<input type="file" accept="image/*" onChange={handleThumbnailChange} className="hidden" />
-                    </label>
-                  </div>
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
-                    {demoPreview ? <video src={demoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> : <Video size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">
-                      فيديو Hover<input type="file" accept="video/mp4,video/webm" onChange={handleDemoChange} className="hidden" />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {hasMobile && (
-              <div className="space-y-4 animate-in fade-in duration-500">
-                <h3 className="text-blue-500 font-medium flex items-center gap-2"><Smartphone size={18} /> وسائط الجوال (طولية)</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
-                    {mobileThumbnailPreview ? <img src={mobileThumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">
-                      غلاف الجوال<input type="file" accept="image/*" onChange={handleMobileThumbnailChange} className="hidden" />
-                    </label>
-                  </div>
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
-                    {mobileDemoPreview ? <video src={mobileDemoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> : <Video size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">
-                      فيديو الجوال<input type="file" accept="video/mp4,video/webm" onChange={handleMobileDemoChange} className="hidden" />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* --- 3. الحالة والتميز ولون الهوية --- */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-white border-b border-zinc-800 pb-4"><Star className="text-yellow-500" /> التميز والهوية</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            
-            <div>
-              <label className="block text-zinc-400 text-sm mb-2">حالة المشروع</label>
-              <select {...register('status')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none">
-                <option value="Live">Live (مكتمل)</option>
-                <option value="In Progress">In Progress (قيد التطوير)</option>
-                <option value="Beta">Beta (نسخة تجريبية)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-zinc-400 text-sm mb-2">لون الهوية (توهج البطاقة)</label>
-              <div className="flex gap-3">
-                <input 
-                  type="color" 
-                  value={brandColorValue} 
-                  onChange={(e) => setValue('brand_color', e.target.value, { shouldDirty: true })} 
-                  className="h-12 w-12 rounded-xl bg-zinc-950 border border-zinc-800 cursor-pointer" 
-                />
-                <input 
-                  type="text" 
-                  {...register('brand_color')} 
-                  className="flex-1 bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none uppercase" 
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 bg-zinc-950 border border-zinc-800 p-4 rounded-xl h-12 mt-6 cursor-pointer hover:border-emerald-500 transition-colors">
-              <input type="checkbox" id="is_featured" {...register('is_featured')} className="w-5 h-5 accent-emerald-500" />
-              <label htmlFor="is_featured" className="text-white font-medium cursor-pointer">تثبيت كمشروع مميز (هالة دائمة)</label>
-            </div>
-
-          </div>
-        </div>
-
-        {/* --- 4. الروابط المباشرة والمتاجر --- */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-white border-b border-zinc-800 pb-4"><LinkIcon className="text-zinc-400" /> الروابط والمتاجر</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {hasDesktop && (
-              <div><label className="block text-zinc-400 text-sm mb-2">رابط الموقع المباشر (Live URL)</label><input {...register('live_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-            )}
-            <div><label className="block text-zinc-400 text-sm mb-2">الكود المصدري (GitHub)</label><input {...register('github_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-            
-            {hasMobile && (
-              <>
-                <div><label className="block text-zinc-400 text-sm mb-2">رابط Google Play</label><input {...register('play_store_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-                <div><label className="block text-zinc-400 text-sm mb-2">رابط App Store</label><input {...register('app_store_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-              </>
-            )}
-            <div className="md:col-span-2"><label className="block text-zinc-400 text-sm mb-2">رابط تحميل مباشر (آخر)</label><input {...register('download_url')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-          </div>
-        </div>
-
-        {/* --- 5. العميل والتقييم --- */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 space-y-6">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-white border-b border-zinc-800 pb-4"><User className="text-zinc-400" /> معلومات العميل (اختياري)</h2>
-          <div className="grid grid-cols-1 gap-6">
-            <div><label className="block text-zinc-400 text-sm mb-2">اسم العميل أو الشركة</label><input {...register('client_name')} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none" /></div>
-            <div><label className="block text-zinc-400 text-sm mb-2">رأي العميل (Testimonial)</label><textarea {...register('testimonial')} rows={3} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 outline-none resize-y" /></div>
-          </div>
-        </div>
-
-        {/* 👈 استدعاء مُكوّن السحب والإفلات وبناء الفصول هنا */}
-        <CaseStudyBuilder 
-          chapters={chapters} 
-          setChapters={setChapters} 
-          isSubmitting={isSubmitting} 
-        />
-
-        <button type="submit" disabled={isSubmitting} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl px-4 py-5 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 text-lg shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-          <Save size={24} className={isSubmitting ? "animate-spin" : ""} />
-          <span>{isSubmitting ? 'جاري بناء ورفع المشروع...' : 'نشر المشروع'}</span>
-        </button>
-      </form>
+      )}
     </div>
   )
 }
