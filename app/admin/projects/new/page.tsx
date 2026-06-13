@@ -108,9 +108,15 @@ export default function NewProjectPage() {
         features.map(async (feature) => {
           const video_url = feature.videoFile ? await uploadFile(feature.videoFile, 'features/videos') : null;
           const image_urls = await Promise.all(feature.imageFiles.map(img => uploadFile(img.file, 'features/images')));
-          return { title: feature.title, content: feature.content, video_url, image_urls }
+          return { 
+            id: crypto.randomUUID(), 
+            title: feature.title, 
+            content: feature.content, 
+            video_url, 
+            image_urls 
+          };
         })
-      )
+      );
 
       const techStackArray = data.tech_stack ? data.tech_stack.split(',').map((s) => s.trim()) : []
 

@@ -2,7 +2,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, GripVertical, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, Video, Images, X, LayoutTemplate, ArrowUp, ArrowDown } from 'lucide-react'
+import { Plus, GripVertical, Trash2, ChevronDown, ChevronUp, Image as ImageIcon, Video, Images, X, LayoutTemplate, ArrowUp, ArrowDown, ListChecks  } from 'lucide-react'
 import { 
   DndContext, 
   closestCenter,
@@ -195,12 +195,12 @@ export default function CaseStudyBuilder({ chapters, setChapters, isSubmitting }
                   isSubmitting={isSubmitting}
                   // تمرير دوال النقاط
                   addFeature={() => addFeature(chapter.id)}
-                  removeFeature={(fId) => removeFeature(chapter.id, fId)}
-                  updateFeature={(fId, field, value) => updateFeature(chapter.id, fId, field, value)}
-                  moveFeature={(fIndex, dir) => moveFeature(chapter.id, fIndex, dir)}
-                  handleFeatureVideo={(fId, e) => handleFeatureVideo(chapter.id, fId, e)}
-                  handleFeatureImages={(fId, e, current) => handleFeatureImages(chapter.id, fId, e, current)}
-                  removeFeatureImage={(fId, imgId, current) => removeFeatureImage(chapter.id, fId, imgId, current)}
+                  removeFeature={(fId: string) => removeFeature(chapter.id, fId)}
+                  updateFeature={(fId: string, field: keyof ProjectFormFeature, value: any) => updateFeature(chapter.id, fId, field, value)}
+                  moveFeature={(fIndex: number, dir: 'up' | 'down') => moveFeature(chapter.id, fIndex, dir)}
+                  handleFeatureVideo={(fId: string, e: React.ChangeEvent<HTMLInputElement>) => handleFeatureVideo(chapter.id, fId, e)}
+                  handleFeatureImages={(fId: string, e: React.ChangeEvent<HTMLInputElement>, current: any[]) => handleFeatureImages(chapter.id, fId, e, current)}
+                  removeFeatureImage={(fId: string, imgId: string, current: any[]) => removeFeatureImage(chapter.id, fId, imgId, current)}
                 />
               ))}
             </div>
