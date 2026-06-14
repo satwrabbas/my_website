@@ -4,13 +4,16 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { ArrowRight, Save, Image as ImageIcon, Video, Loader2, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple } from 'lucide-react'
+// 👈 أضفنا ZoomIn و Upload للأيقونات الجديدة
+import { ArrowRight, Save, Image as ImageIcon, Video, Loader2, Monitor, Smartphone, Link as LinkIcon, User, Star, Globe, Apple, ZoomIn, Upload } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
-// 👈 استدعاء مُكون بناء الفصول والواجهات
 import CaseStudyBuilder, { ProjectFormChapter } from '@/components/admin/CaseStudyBuilder'
 import { ProjectChapter, ProjectFeature } from '@/types' 
+
+// 👈 استدعاء مكون Lightbox الذي أنشأناه سابقاً
+import MediaLightbox, { LightboxMedia } from '@/components/MediaLightbox'
 
 interface ProjectFormValues {
   title: string;
@@ -43,6 +46,9 @@ export default function EditProjectPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
+  // 👈 حالة جديدة للتحكم بنافذة العرض (Lightbox)
+  const [lightboxMedia, setLightboxMedia] = useState<LightboxMedia>(null)
+  
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null)
   const [demoFile, setDemoFile] = useState<File | null>(null)
@@ -53,7 +59,6 @@ export default function EditProjectPage() {
   const [mobileDemoFile, setMobileDemoFile] = useState<File | null>(null)
   const [mobileDemoPreview, setMobileDemoPreview] = useState<string | null>(null)
 
-  // 👈 استبدال features بـ chapters
   const [chapters, setChapters] = useState<ProjectFormChapter[]>([])
   
   const { register, handleSubmit, reset, watch, setValue } = useForm<ProjectFormValues>({
@@ -68,7 +73,6 @@ export default function EditProjectPage() {
   const hasDesktop = selectedPlatforms.includes('Web') || selectedPlatforms.includes('Windows')
   const hasMobile = selectedPlatforms.includes('Android') || selectedPlatforms.includes('iOS')
 
-  // --- جلب بيانات المشروع ---
   useEffect(() => {
     const fetchProject = async () => {
       const { data, error } = await supabase
@@ -108,7 +112,6 @@ export default function EditProjectPage() {
         setMobileThumbnailPreview(data.mobile_thumbnail_url)
         setMobileDemoPreview(data.mobile_demo_url)
 
-        // 🌟 قراءة الفصول الجديدة، أو ترحيل النقاط القديمة إلى فصل جديد 🌟
         let loadedChapters: ProjectFormChapter[] = []
         
         if (data.chapters && data.chapters.length > 0) {
@@ -127,7 +130,6 @@ export default function EditProjectPage() {
             })) : []
           }))
         } else if (data.features && data.features.length > 0) {
-          // دمج الميزات القديمة في فصل واحد لكي لا تضيع البيانات
           loadedChapters = [{
             id: Math.random().toString(36).substring(2, 15),
             title: 'الميزات الرئيسية',
@@ -165,7 +167,6 @@ export default function EditProjectPage() {
     return data.publicUrl
   }
 
-  // --- دالة الحفظ ---
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true)
 
@@ -175,7 +176,6 @@ export default function EditProjectPage() {
       const finalMobileThumbnailUrl = mobileThumbnailFile ? await uploadFile(mobileThumbnailFile, 'thumbnails/mobile') : mobileThumbnailPreview
       const finalMobileDemoUrl = mobileDemoFile ? await uploadFile(mobileDemoFile, 'demos/mobile') : mobileDemoPreview
       
-      // 👈 معالجة ورفع ملفات الفصول (Chapters)
       const processedChapters = await Promise.all(
         chapters.map(async (chapter) => {
           const processedFeatures = await Promise.all(
@@ -238,7 +238,7 @@ export default function EditProjectPage() {
         mobile_thumbnail_url: finalMobileThumbnailUrl,
         mobile_demo_url: finalMobileDemoUrl,
         
-        chapters: processedChapters, // 👈 التحديث في العمود الجديد
+        chapters: processedChapters,
       }).eq('id', projectId)
 
       if (error) throw error
@@ -315,7 +315,7 @@ export default function EditProjectPage() {
           </div>
         </div>
 
-        {/* --- 2. قسم الوسائط المزدوجة --- */}
+        {/* --- 2. قسم الوسائط المزدوجة (تم التعديل لدعم العرض) --- */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
           <h2 className="text-xl font-bold mb-6 text-white border-b border-zinc-800 pb-4">الوسائط والمظهر</h2>
           
@@ -330,14 +330,48 @@ export default function EditProjectPage() {
               <div className="space-y-4 animate-in fade-in duration-500">
                 <h3 className="text-emerald-500 font-medium flex items-center gap-2"><Monitor size={18} /> وسائط الويب/سطح المكتب (عرضية)</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
+                  
+                  {/* 🌟 تعديل مربع الغلاف الديسكتوب 🌟 */}
+                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950 overflow-hidden">
                     {thumbnailPreview ? <img src={thumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الغلاف<input type="file" accept="image/*" onChange={handleThumbnailChange} className="hidden" /></label>
+                    
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 rounded-2xl">
+                      {thumbnailPreview && (
+                        <button type="button" onClick={() => setLightboxMedia({ type: 'image', url: thumbnailPreview })} className="p-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full transition-colors" title="تكبير">
+                          <ZoomIn size={20} />
+                        </button>
+                      )}
+                      <label className="p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full transition-colors cursor-pointer" title="تغيير الملف">
+                        <Upload size={20} />
+                        <input type="file" accept="image/*" onChange={handleThumbnailChange} className="hidden" />
+                      </label>
+                    </div>
                   </div>
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
-                    {demoPreview ? (demoPreview.match(/\.(mp4|webm)$/i) ? <video src={demoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> : <img src={demoPreview} className="w-full h-full object-cover rounded-xl" />) : <Video size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الفيديو<input type="file" accept="video/mp4,video/webm,image/*" onChange={handleDemoChange} className="hidden" /></label>
+
+                  {/* 🌟 تعديل مربع الفيديو الديسكتوب 🌟 */}
+                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950 overflow-hidden">
+                    {demoPreview ? (
+                      demoPreview.match(/\.(mp4|webm)$/i) || (demoFile && demoFile.type.startsWith('video/')) 
+                        ? <video src={demoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> 
+                        : <img src={demoPreview} className="w-full h-full object-cover rounded-xl" />
+                    ) : <Video size={28} className="text-zinc-500 mb-2" />}
+                    
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 rounded-2xl">
+                      {demoPreview && (
+                        <button type="button" onClick={() => {
+                          const isVid = demoFile ? demoFile.type.startsWith('video/') : demoPreview.match(/\.(mp4|webm)$/i);
+                          setLightboxMedia({ type: isVid ? 'video' : 'image', url: demoPreview })
+                        }} className="p-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full transition-colors" title="عرض الملف">
+                          <ZoomIn size={20} />
+                        </button>
+                      )}
+                      <label className="p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full transition-colors cursor-pointer" title="تغيير الملف">
+                        <Upload size={20} />
+                        <input type="file" accept="video/mp4,video/webm,image/*" onChange={handleDemoChange} className="hidden" />
+                      </label>
+                    </div>
                   </div>
+
                 </div>
               </div>
             )}
@@ -346,14 +380,48 @@ export default function EditProjectPage() {
               <div className="space-y-4 animate-in fade-in duration-500">
                 <h3 className="text-blue-500 font-medium flex items-center gap-2"><Smartphone size={18} /> وسائط الجوال (طولية)</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
+                  
+                  {/* 🌟 تعديل مربع غلاف الجوال 🌟 */}
+                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950 overflow-hidden">
                     {mobileThumbnailPreview ? <img src={mobileThumbnailPreview} className="w-full h-full object-cover rounded-xl" /> : <ImageIcon size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الغلاف<input type="file" accept="image/*" onChange={handleMobileThumbnailChange} className="hidden" /></label>
+                    
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 rounded-2xl">
+                      {mobileThumbnailPreview && (
+                        <button type="button" onClick={() => setLightboxMedia({ type: 'image', url: mobileThumbnailPreview })} className="p-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full transition-colors" title="تكبير">
+                          <ZoomIn size={20} />
+                        </button>
+                      )}
+                      <label className="p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-colors cursor-pointer" title="تغيير الملف">
+                        <Upload size={20} />
+                        <input type="file" accept="image/*" onChange={handleMobileThumbnailChange} className="hidden" />
+                      </label>
+                    </div>
                   </div>
-                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950">
-                    {mobileDemoPreview ? (mobileDemoPreview.match(/\.(mp4|webm)$/i) ? <video src={mobileDemoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> : <img src={mobileDemoPreview} className="w-full h-full object-cover rounded-xl" />) : <Video size={28} className="text-zinc-500 mb-2" />}
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium rounded-2xl">تغيير الفيديو<input type="file" accept="video/mp4,video/webm,image/*" onChange={handleMobileDemoChange} className="hidden" /></label>
+
+                  {/* 🌟 تعديل مربع فيديو الجوال 🌟 */}
+                  <div className="border-2 border-dashed border-zinc-700 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative h-40 group bg-zinc-950 overflow-hidden">
+                    {mobileDemoPreview ? (
+                      mobileDemoPreview.match(/\.(mp4|webm)$/i) || (mobileDemoFile && mobileDemoFile.type.startsWith('video/'))
+                        ? <video src={mobileDemoPreview} autoPlay loop muted className="w-full h-full object-cover rounded-xl" /> 
+                        : <img src={mobileDemoPreview} className="w-full h-full object-cover rounded-xl" />
+                    ) : <Video size={28} className="text-zinc-500 mb-2" />}
+                    
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 rounded-2xl">
+                      {mobileDemoPreview && (
+                        <button type="button" onClick={() => {
+                          const isVid = mobileDemoFile ? mobileDemoFile.type.startsWith('video/') : mobileDemoPreview.match(/\.(mp4|webm)$/i);
+                          setLightboxMedia({ type: isVid ? 'video' : 'image', url: mobileDemoPreview })
+                        }} className="p-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full transition-colors" title="عرض الملف">
+                          <ZoomIn size={20} />
+                        </button>
+                      )}
+                      <label className="p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-colors cursor-pointer" title="تغيير الملف">
+                        <Upload size={20} />
+                        <input type="file" accept="video/mp4,video/webm,image/*" onChange={handleMobileDemoChange} className="hidden" />
+                      </label>
+                    </div>
                   </div>
+
                 </div>
               </div>
             )}
@@ -436,6 +504,9 @@ export default function EditProjectPage() {
           <Save size={24} className={isSubmitting ? "animate-spin" : ""} /><span>{isSubmitting ? 'جاري التحديث...' : 'تحديث المشروع'}</span>
         </button>
       </form>
+
+      {/* 🌟 إرفاق نافذة العرض لتكون جاهزة عند الطلب 🌟 */}
+      <MediaLightbox media={lightboxMedia} onClose={() => setLightboxMedia(null)} />
     </div>
   )
 }
