@@ -1,4 +1,4 @@
-//components/ProjectMediaViewer.tsx
+// components/ProjectMediaViewer.tsx
 'use client'
 
 import { useState } from 'react'
@@ -31,7 +31,15 @@ export default function ProjectMediaViewer({ feature, layout }: { feature: Proje
         // --- قسم عرض الصور ---
         isHero ? (
           <div className="absolute inset-0 z-0 w-full h-full overflow-hidden cursor-pointer group" onClick={() => setLightbox({ type: 'image', url: feature.image_urls![0] })}>
-             <Image src={feature.image_urls[0]} alt={feature.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+             <Image 
+               src={feature.image_urls[0]} 
+               // 👈 تعديل 1: نص بديل آمن
+               alt={feature.title || "صورة الميزة"} 
+               fill 
+               // 👈 تعديل 2: الحجم الأقصى للـ Hero
+               sizes="(max-width: 1200px) 100vw, 1200px"
+               className="object-cover transition-transform duration-700 group-hover:scale-105" 
+             />
              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
                <div className="bg-white/10 p-3 rounded-full text-white backdrop-blur-md border border-white/20"><ZoomIn size={32} /></div>
@@ -45,7 +53,16 @@ export default function ProjectMediaViewer({ feature, layout }: { feature: Proje
                 className="relative rounded-3xl overflow-hidden border border-zinc-800/50 bg-zinc-900/30 shadow-xl group cursor-pointer"
                 onClick={() => setLightbox({ type: 'image', url: imgUrl })}
               >
-                <Image src={imgUrl} alt={feature.title} width={1200} height={800} className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]" />
+                <Image 
+                  src={imgUrl} 
+                  // 👈 تعديل 3: نص بديل ديناميكي ومرقم للـ SEO 
+                  alt={feature.title ? `${feature.title} - لقطة ${idx + 1}` : `صورة الميزة ${idx + 1}`} 
+                  width={1200} 
+                  height={800} 
+                  // 👈 تعديل 4: مقاسات ذكية للشبكة (تأخذ النصف فقط على الشاشات الكبيرة)
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]" 
+                />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                   <div className="bg-white/10 p-3 rounded-full text-white backdrop-blur-md border border-white/20"><ZoomIn size={32} /></div>
                 </div>
