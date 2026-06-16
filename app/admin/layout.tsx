@@ -9,26 +9,59 @@ import { createClient } from '@/lib/supabase'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const pathname = usePathname() // لمعرفة مسار الصفحة الحالية
+  const pathname = usePathname()
   const supabase = createClient()
   
-  // حالة فتح وإغلاق القائمة الجانبية في الشاشات الصغيرة
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true) // 👈 حالة لإدارة عملية التحقق
+
+  useEffect(() => {
+    const checkUser = async () => {
+      // جلب بيانات المستخدم الحالي بشكل آمن من خادم Supabase
+      const { data: { user }, error } = await supabase.auth.getUser()
+
+      // 1. التحقق من وجود مستخدم مسجل
+      // 2. التحقق من أن البريد الإلكتروني هو بريدك الشخصي فقط لمنع المتطفلين
+      if (error || !user || user.email !== "satwrabbas@gmail.com") {
+        if (user) {
+          // إذا كان مسجلاً ببريد آخر، قم بتسجيل خروجه فوراً
+          await supabase.auth.signOut()
+        }
+        // إعادة توجيه المستخدم إلى الصفحة الرئيسية
+        router.replace('/')
+      } else {
+        // إذا كان المستخدم هو أنت، يتم إلغاء حالة التحميل وعرض لوحة التحكم
+        setCheckingAuth(false)
+      }
+    }
+
+    checkUser()
+  }, [router, supabase])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
   }
 
-  // إغلاق القائمة الجانبية تلقائياً عند تغيير الصفحة في الشاشات الصغيرة
   useEffect(() => {
     setIsSidebarOpen(false)
   }, [pathname])
 
+  // 👈 عرض شاشة تحميل مؤقتة لمنع ظهور أجزاء من لوحة التحكم قبل إتمام التحقق (وميض المحتوى)
+  if (checkingAuth) {
+    return (
+      <div className="flex min-h-screen bg-zinc-950 text-white items-center justify-center">
+        <div className="text-center">
+          <p className="text-zinc-400 animate-pulse text-lg font-medium">جاري التحقق من الهوية...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white relative">
       
-      {/* 📱 الشريط العلوي للشاشات الصغيرة (يظهر فقط عند تصغير الشاشة) */}
+      {/* 📱 الشريط العلوي للشاشات الصغيرة */}
       <div className="lg:hidden fixed top-0 right-0 left-0 h-16 bg-zinc-900 border-b border-zinc-800 z-40 px-6 flex items-center justify-between shadow-sm">
         <h2 className="text-xl font-bold text-emerald-500">لوحة القيادة</h2>
         <button 
@@ -39,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </button>
       </div>
 
-      {/* 🌑 خلفية معتمة تظهر خلف القائمة في وضع الشاشات الصغيرة */}
+      {/* 🌑 خلفية معتمة */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
@@ -57,7 +90,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <h2 className="text-xl font-bold text-emerald-500">لوحة القيادة</h2>
             <p className="text-xs text-zinc-400 mt-1">مرحباً يا عباس</p>
           </div>
-          {/* زر إغلاق مخفي في الديسكتوب، يظهر داخل القائمة للجوال */}
           <button 
             onClick={() => setIsSidebarOpen(false)} 
             className="lg:hidden text-zinc-400 hover:text-white"
@@ -114,7 +146,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* 📄 منطقة المحتوى */}
-      {/* تم إضافة pt-24 ليأخذ مسافة أسفل الشريط العلوي في الشاشات الصغيرة */}
       <main className="flex-1 p-6 md:p-8 pt-24 lg:pt-8 w-full min-w-0 max-w-full overflow-x-hidden">
         {children}
       </main>
