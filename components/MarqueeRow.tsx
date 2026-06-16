@@ -14,18 +14,21 @@ export default function MarqueeRow({
   const adjustedDirection = direction === 'right' ? 'left' : 'right'
 
   return (
-    // أزلنا py-4 من هنا لكي لا نزيد الفجوات الخارجية
-    <div className="w-full overflow-hidden" dir="ltr">
+    // أزلنا overflow-hidden من هنا لنسمح للتوهج بالخروج
+    <div className="w-full py-4 md:py-6" dir="ltr">
       <Marquee 
         direction={adjustedDirection} 
         speed={40} 
         pauseOnHover={true} 
         autoFill={true} 
         gradient={false}
+        // 👈 السر هنا: نجبر المكتبة على جعل حوافها "شفافة/مفتوحة" لكي لا تقص التوهج
+        className="!overflow-visible" 
+        style={{ overflow: 'visible' }} 
       >
         {React.Children.map(children, (child) => (
-          // 👈 السر هنا: أضفنا (py-8 md:py-10) لكي نوسع الحاوية من الداخل ليتسع التوهج والتكبير دون أن يُقص
-          <div dir="rtl" className="mx-2 md:mx-4 py-8 md:py-10">
+          // أعدنا المسافة الطبيعية بين البطاقات بدون أي Padding إضافي
+          <div dir="rtl" className="mx-2 md:mx-4">
             {child}
           </div>
         ))}

@@ -177,7 +177,8 @@ export default async function Home() {
           </div>
 
           {/* 👈 استخدمنا (-space-y) بالسالب لسحب الأشرطة نحو بعضها وإلغاء المسافات الزائدة المزعجة */}
-          <div className="w-full relative z-10 flex flex-col -space-y-4 md:-space-y-8 py-4">    
+          {/* أعدنا الفجوة الطبيعية التي صممتها أنت */}
+          <div className="w-full relative z-10 flex flex-col gap-6 md:gap-12 py-4">
             <div className="absolute top-0 bottom-0 right-0 w-12 md:w-48 bg-gradient-to-l from-zinc-950 to-transparent z-20 pointer-events-none"></div>
             <div className="absolute top-0 bottom-0 left-0 w-12 md:w-48 bg-gradient-to-r from-zinc-950 to-transparent z-20 pointer-events-none"></div>
 
