@@ -15,26 +15,22 @@ interface ProjectCardProps {
 export default function ProjectCard({ project, type }: ProjectCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
-  // 1. قراءة المنصات
   const platforms = project.platforms || []
   const hasAndroid = platforms.includes('Android')
   const hasIOS = platforms.includes('iOS') || platforms.includes('iPhone')
   const hasWindows = platforms.includes('Windows')
   const hasWeb = platforms.includes('Web')
 
-  // 2. معالجة الوسائط الذكية
   const isMobileType = type === 'mobile'
   const activeThumbnail = isMobileType ? (project.mobile_thumbnail_url || project.thumbnail_url) : project.thumbnail_url
   const activeDemo = isMobileType ? (project.mobile_demo_url || project.demo_url) : project.demo_url
   
   const isVideoDemo = activeDemo?.match(/\.(mp4|webm)$/i)
 
-  // 3. تحديد أبعاد البطاقة
   const cardSizeClasses = isMobileType 
     ? 'w-[220px] h-[360px] sm:w-[240px] sm:h-[380px] md:w-[300px] md:h-[500px]' 
     : 'w-[280px] h-[190px] sm:w-[300px] sm:h-[200px] md:w-[480px] md:h-[320px]'
 
-  // 4. الألوان والهالات
   const brandColor = project.brand_color || '#10b981'
   const isFeatured = project.is_featured === true
   
@@ -44,16 +40,15 @@ export default function ProjectCard({ project, type }: ProjectCardProps) {
       ? `0 15px 50px -10px ${brandColor}90`
       : 'none'
 
-  // 5. فحص حالة المشروع
   const status = project.status || 'Live'
   const isNotLive = status.toLowerCase() !== 'live'
 
   return (
     <div 
+      // 👇 تم إزالة كلاسات الـ snap والـ group/row المعقدة للحفاظ على أداء المكتبة 👇
       className={`group relative rounded-2xl md:rounded-3xl overflow-hidden border border-zinc-800 transition-all duration-500 flex-shrink-0 ${cardSizeClasses} 
-      md:group-hover/row:opacity-40 md:group-hover/row:scale-[0.98] 
-      md:hover:!opacity-100 md:hover:!scale-[1.02] md:hover:z-20
-      active:scale-[0.98] snap-center
+      hover:scale-[1.02] hover:z-20
+      active:scale-[0.98] 
       ${isFeatured ? 'animate-pulse-slow' : ''}`}
       style={{ 
         boxShadow: glowStyle,
@@ -65,7 +60,6 @@ export default function ProjectCard({ project, type }: ProjectCardProps) {
       onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
     >
       
-      {/* 🚧 شارة "قيد التطوير" الذكية 🚧 */}
       {isNotLive && (
         <div className="absolute top-3 right-3 md:top-4 md:right-4 z-30 bg-zinc-900/80 backdrop-blur-md border border-amber-500/30 text-amber-500 text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1 md:gap-1.5 shadow-lg">
           <Construction className="w-3 h-3 md:w-[14px] md:h-[14px] animate-pulse" />
@@ -73,7 +67,6 @@ export default function ProjectCard({ project, type }: ProjectCardProps) {
         </div>
       )}
 
-      {/* 🌟 شارة "مميز" 🌟 */}
       {isFeatured && !isNotLive && (
         <div className="absolute top-3 right-3 md:top-4 md:right-4 z-30 bg-zinc-900/80 backdrop-blur-md text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1.5 shadow-lg border" style={{ borderColor: `${brandColor}50`, color: brandColor }}>
           <span className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
@@ -88,10 +81,8 @@ export default function ProjectCard({ project, type }: ProjectCardProps) {
         {activeThumbnail && (
           <Image 
             src={activeThumbnail} 
-            // 👈 تعديل 1: إضافة نص بديل آمن
             alt={project.title || "صورة غلاف المشروع"} 
             fill
-            // 👈 تعديل 2: تحديد أحجام دقيقة تتناسب مع الحد الأقصى للبطاقة لتوفير سرعة التحميل
             sizes="(max-width: 768px) 350px, 500px"
             className={`object-cover object-top transition-all duration-700 ${
               isHovered && activeDemo ? 'opacity-0 scale-100' : 'opacity-100 scale-105'
@@ -102,15 +93,12 @@ export default function ProjectCard({ project, type }: ProjectCardProps) {
         {activeDemo && isHovered && (
           <div className="absolute inset-0 w-full h-full animate-in fade-in duration-700">
             {isVideoDemo ? (
-              // 👈 تعديل 3: إضافة preload="metadata" لمعالجة الفيديوهات بشكل أسرع وأكثر كفاءة
               <video src={activeDemo} autoPlay loop muted playsInline preload="metadata" className="w-full h-full object-cover object-top" />
             ) : (
               <Image 
                 src={activeDemo} 
-                // 👈 تعديل 4: إضافة نص بديل ديناميكي لصور الديمو
                 alt={project.title ? `عرض توضيحي لـ ${project.title}` : "عرض توضيحي"} 
                 fill 
-                // 👈 تعديل 5: إضافة sizes المفقودة هنا لتسريع ظهور الصورة عند الـ Hover
                 sizes="(max-width: 768px) 350px, 500px"
                 className="object-cover object-top" 
               />

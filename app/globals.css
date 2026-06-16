@@ -26,7 +26,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* إخفاء شريط التمرير */
+/* إخفاء شريط التمرير القبيح في العناصر التي تقبل التمرير اليدوي */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -35,44 +35,7 @@ body {
   scrollbar-width: none;
 }
 
-/* 
-  --- محرك التمرير (اتجاهين) --- 
-  تم وضعه داخل Media Query ليعمل فقط على شاشات الكمبيوتر (التابلت وأكبر)
-  أما في الجوال سنعتمد على السحب اليدوي (Swipe)
-*/
-@media (min-width: 768px) {
-  @keyframes marquee-right {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(50%); } /* في RTL يتحرك لليمين */
-  }
-
-  @keyframes marquee-left {
-    0% { transform: translateX(50%); }
-    100% { transform: translateX(0); } /* في RTL يتحرك لليسار */
-  }
-
-  /* 🌟 اللمسة الجمالية: اختلاف السرعات (Parallax Effect) 🌟 */
-  .animate-marquee-right {
-    width: max-content;
-    animation: marquee-right 45s linear infinite;
-  }
-
-  .animate-marquee-left {
-    width: max-content;
-    animation: marquee-left 35s linear infinite;
-  }
-
-  /* 
-    إيقاف الحركة عند تمرير الماوس 
-    تم إضافة !important لفرض التوقف بقوة عند ملامسة أي جزء من الشريط
-  */
-  .animate-marquee-right:hover,
-  .animate-marquee-left:hover {
-    animation-play-state: paused !important;
-  }
-}
-
-/* تأثير النبض البطيء (أبقيناه خارج الميديا ليعمل على الجوال أيضاً) */
+/* تأثير النبض البطيء للبطاقات المميزة */
 .animate-pulse-slow {
   animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

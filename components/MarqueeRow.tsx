@@ -1,6 +1,9 @@
 // components/MarqueeRow.tsx
 'use client'
 
+import React from 'react'
+import Marquee from 'react-fast-marquee'
+
 export default function MarqueeRow({ 
   children, 
   direction = 'right' 
@@ -8,35 +11,29 @@ export default function MarqueeRow({
   children: React.ReactNode, 
   direction?: 'right' | 'left' 
 }) {
-  const animationClass = direction === 'right' ? 'animate-marquee-right' : 'animate-marquee-left'
+  // 1. عكس الاتجاه برمجياً ليتناسب مع الخدعة
+  const adjustedDirection = direction === 'right' ? 'left' : 'right'
 
   return (
-    // الحاوية الخارجية: تمنع ظهور أي أشرطة تمرير أفقية مزعجة للموقع
-    <div className="w-full relative py-4 md:py-6 overflow-hidden">
+    // 2. إجبار الحاوية الخارجية على LTR لكي تنجح حسابات المكتبة في التكرار (autoFill)
+    <div className="w-full py-4 md:py-6 overflow-hidden" dir="ltr">
       
-      {/* 
-         السر كله هنا:
-         - في الجوال: w-full (عرض الشاشة) + overflow-x-auto (سحب يدوي) + snap-x (التقاط).
-         - في الكمبيوتر: md:w-max (لإعطاء مساحة للحركة) + md:overflow-visible (إلغاء السحب ليعمل الأنيميشن).
-      */}
-      <div className={`flex items-center gap-4 md:gap-8 px-5 md:px-0 w-full md:w-max overflow-x-auto md:overflow-visible snap-x snap-mandatory hide-scrollbar group/row ${animationClass}`}>
-        
-        {/* 
-          البطاقات الأساسية: 
-          مباشرة داخل مسار السحب لكي يعمل الـ (Snap) بشكل مثالي في الجوال.
-        */}
-        {children}
+      <Marquee 
+        direction={adjustedDirection} 
+        speed={40} 
+        pauseOnHover={true} 
+        autoFill={true} // ستعمل الآن بنجاح!
+        gradient={false}
+      >
+        {React.Children.map(children, (child) => (
+          // 3. إعادة المحتوى للـ RTL لكي لا تتشوه النصوص العربية داخل البطاقات
+          // استخدام mx (يمين ويسار) يضمن مسافة متساوية ومثالية بين كل البطاقات المكررة
+          <div dir="rtl" className="mx-2 md:mx-4">
+            {child}
+          </div>
+        ))}
+      </Marquee>
 
-        {/* 
-          نسخة مكررة من البطاقات:
-          - في الجوال: مخفية تماماً (hidden) لأن المستخدم سيسحب البطاقات بنفسه.
-          - في الكمبيوتر: تظهر كأبناء مباشرين (md:contents) لتكمل تأثير الحركة اللانهائية.
-        */}
-        <div className="hidden md:contents">
-          {children}
-        </div>
-
-      </div>
     </div>
   )
 }
