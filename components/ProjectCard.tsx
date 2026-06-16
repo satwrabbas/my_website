@@ -5,10 +5,10 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Smartphone, Monitor, Globe, Apple, ArrowUpLeft, Construction } from 'lucide-react'
-import { Project } from '@/types' // 👈 استيراد واجهة المشروع
+import { Project } from '@/types' 
 
 interface ProjectCardProps {
-  project: Project; // 👈 استخدام النوع بدلاً من any
+  project: Project; 
   type: 'mobile' | 'desktop';
 }
 
@@ -88,9 +88,11 @@ export default function ProjectCard({ project, type }: ProjectCardProps) {
         {activeThumbnail && (
           <Image 
             src={activeThumbnail} 
-            alt={project.title} 
+            // 👈 تعديل 1: إضافة نص بديل آمن
+            alt={project.title || "صورة غلاف المشروع"} 
             fill
-            sizes="(max-width: 768px) 100vw, 50vw"
+            // 👈 تعديل 2: تحديد أحجام دقيقة تتناسب مع الحد الأقصى للبطاقة لتوفير سرعة التحميل
+            sizes="(max-width: 768px) 350px, 500px"
             className={`object-cover object-top transition-all duration-700 ${
               isHovered && activeDemo ? 'opacity-0 scale-100' : 'opacity-100 scale-105'
             }`}
@@ -100,9 +102,18 @@ export default function ProjectCard({ project, type }: ProjectCardProps) {
         {activeDemo && isHovered && (
           <div className="absolute inset-0 w-full h-full animate-in fade-in duration-700">
             {isVideoDemo ? (
-              <video src={activeDemo} autoPlay loop muted playsInline className="w-full h-full object-cover object-top" />
+              // 👈 تعديل 3: إضافة preload="metadata" لمعالجة الفيديوهات بشكل أسرع وأكثر كفاءة
+              <video src={activeDemo} autoPlay loop muted playsInline preload="metadata" className="w-full h-full object-cover object-top" />
             ) : (
-              <Image src={activeDemo} alt="Demo" fill className="object-cover object-top" />
+              <Image 
+                src={activeDemo} 
+                // 👈 تعديل 4: إضافة نص بديل ديناميكي لصور الديمو
+                alt={project.title ? `عرض توضيحي لـ ${project.title}` : "عرض توضيحي"} 
+                fill 
+                // 👈 تعديل 5: إضافة sizes المفقودة هنا لتسريع ظهور الصورة عند الـ Hover
+                sizes="(max-width: 768px) 350px, 500px"
+                className="object-cover object-top" 
+              />
             )}
           </div>
         )}

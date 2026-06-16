@@ -1,4 +1,4 @@
-//components/ProjectHeroMedia.tsx
+// components/ProjectHeroMedia.tsx
 'use client'
 
 import { useState, useRef } from 'react'
@@ -50,10 +50,12 @@ export default function ProjectHeroMedia({ title, thumbnailUrl, demoUrl }: Proje
         {thumbnailUrl && (
           <Image 
             src={thumbnailUrl} 
-            alt={title} 
+            // 👈 التعديل 1: تأمين النص البديل
+            alt={title || "صورة الغلاف الرئيسية للمشروع"} 
             fill 
             priority 
-            sizes="100vw" 
+            // 👈 التعديل 2: توجيه المتصفح لتحميل حجم لا يتعدى 1200px بدلاً من 100vw المفتوحة
+            sizes="(max-width: 1200px) 100vw, 1200px" 
             className={`object-cover object-top transition-all duration-700 ${imageLoaded ? 'blur-0 scale-100' : 'blur-xl scale-105'}`}
             onLoad={() => setImageLoaded(true)}
           />
@@ -67,6 +69,8 @@ export default function ProjectHeroMedia({ title, thumbnailUrl, demoUrl }: Proje
             loop 
             muted 
             playsInline
+            // 👈 التعديل 3: إضافة preload لتحسين استهلاك الذاكرة والإنترنت
+            preload="metadata"
             className="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-500 z-10"
           />
         )}
