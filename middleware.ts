@@ -30,14 +30,18 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // جلب بيانات المستخدم الحالي (إن وجدت)
+  // جلب بيانات المستخدم الحالي من خادم Supabase بشكل آمن
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // 🔴 حماية مسار الإدارة: إذا كان المسار يبدأ بـ /admin ولا يوجد مستخدم، اطرده للرئيسية!
-  if (request.nextUrl.pathname.startsWith('/admin') && !user) {
-    return NextResponse.redirect(new URL('/', request.url))
+  // 🔴 حماية مسار الإدارة:
+  // إذا كان المسار يبدأ بـ /admin، نتحقق من عدم وجود مستخدم أو أن البريد الإلكتروني لا يتطابق مع بريدك الشخصي.
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user || user.email !== "satwrabbas@gmail.com") {
+      // إعادة التوجيه إلى الصفحة الرئيسية مباشرة من الخادم دون تحميل أي كود خاص بالآدمن
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
 
   return supabaseResponse
