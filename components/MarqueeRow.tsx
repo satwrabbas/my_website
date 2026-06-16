@@ -11,29 +11,25 @@ export default function MarqueeRow({
   children: React.ReactNode, 
   direction?: 'right' | 'left' 
 }) {
-  // 1. عكس الاتجاه برمجياً ليتناسب مع الخدعة
   const adjustedDirection = direction === 'right' ? 'left' : 'right'
 
   return (
-    // 2. إجبار الحاوية الخارجية على LTR لكي تنجح حسابات المكتبة في التكرار (autoFill)
-    <div className="w-full py-4 md:py-6 overflow-hidden" dir="ltr">
-      
+    // أزلنا py-4 من هنا لكي لا نزيد الفجوات الخارجية
+    <div className="w-full overflow-hidden" dir="ltr">
       <Marquee 
         direction={adjustedDirection} 
         speed={40} 
         pauseOnHover={true} 
-        autoFill={true} // ستعمل الآن بنجاح!
+        autoFill={true} 
         gradient={false}
       >
         {React.Children.map(children, (child) => (
-          // 3. إعادة المحتوى للـ RTL لكي لا تتشوه النصوص العربية داخل البطاقات
-          // استخدام mx (يمين ويسار) يضمن مسافة متساوية ومثالية بين كل البطاقات المكررة
-          <div dir="rtl" className="mx-2 md:mx-4">
+          // 👈 السر هنا: أضفنا (py-8 md:py-10) لكي نوسع الحاوية من الداخل ليتسع التوهج والتكبير دون أن يُقص
+          <div dir="rtl" className="mx-2 md:mx-4 py-8 md:py-10">
             {child}
           </div>
         ))}
       </Marquee>
-
     </div>
   )
 }
