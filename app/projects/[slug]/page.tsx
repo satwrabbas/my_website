@@ -44,6 +44,11 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   const brandColor = project.brand_color || '#10b981'
   const isNotLive = project.status && project.status.toLowerCase() !== 'live'
 
+  // 👈 التعديل هنا: اكتشاف ما إذا كان المشروع تطبيق جوال فقط
+  const isMobileApp = project.platforms?.some(p => ['Android', 'iOS', 'iPhone'].includes(p)) && 
+                      !project.platforms?.includes('Web') && 
+                      !project.platforms?.includes('Windows')
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-20 md:pb-32 selection:bg-white/20" style={{ '--brand-color': brandColor } as React.CSSProperties}>
       
@@ -76,11 +81,12 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
 
           <p className="text-xl md:text-3xl text-zinc-400 mb-12 leading-relaxed max-w-3xl mx-auto">{project.tagline}</p>
 
-          {/* استبدال الغلاف القديم بمكون الغلاف التفاعلي الجديد */}
+          {/* 👈 التعديل هنا: تمرير isMobileApp إلى المكون */}
           <ProjectHeroMedia 
             title={project.title}
             thumbnailUrl={project.thumbnail_url || project.mobile_thumbnail_url || undefined}
             demoUrl={project.demo_url || project.mobile_demo_url || undefined}
+            isMobile={isMobileApp} 
           />
         </div>
 

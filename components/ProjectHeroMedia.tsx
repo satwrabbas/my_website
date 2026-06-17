@@ -10,9 +10,10 @@ interface ProjectHeroMediaProps {
   title: string
   thumbnailUrl?: string
   demoUrl?: string
+  isMobile?: boolean // 👈 التعديل 1: إضافة خاصية isMobile
 }
 
-export default function ProjectHeroMedia({ title, thumbnailUrl, demoUrl }: ProjectHeroMediaProps) {
+export default function ProjectHeroMedia({ title, thumbnailUrl, demoUrl, isMobile = false }: ProjectHeroMediaProps) {
   const [showVideo, setShowVideo] = useState(false)
   const [lightbox, setLightbox] = useState<LightboxMedia>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
@@ -41,7 +42,12 @@ export default function ProjectHeroMedia({ title, thumbnailUrl, demoUrl }: Proje
   return (
     <>
       <div 
-        className="w-full aspect-video md:h-[600px] rounded-[2rem] overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl relative group cursor-pointer"
+        // 👈 التعديل 2: تغيير الأبعاد بناءً على نوع المشروع (جوال أو ويب)
+        className={`relative mx-auto overflow-hidden rounded-[2rem] border border-zinc-800 bg-zinc-900 shadow-2xl group cursor-pointer ${
+          isMobile 
+            ? 'w-full max-w-[320px] md:max-w-[380px] aspect-[9/16]' // أبعاد تناسب الجوال بالطول
+            : 'w-full aspect-video md:h-[600px]' // الأبعاد العريضة الطبيعية
+        }`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
@@ -50,13 +56,11 @@ export default function ProjectHeroMedia({ title, thumbnailUrl, demoUrl }: Proje
         {thumbnailUrl && (
           <Image 
             src={thumbnailUrl} 
-            // 👈 التعديل 1: تأمين النص البديل
             alt={title || "صورة الغلاف الرئيسية للمشروع"} 
             fill 
             priority 
-            // 👈 التعديل 2: توجيه المتصفح لتحميل حجم لا يتعدى 1200px بدلاً من 100vw المفتوحة
-            sizes="(max-width: 1200px) 100vw, 1200px" 
-            className={`object-cover object-top transition-all duration-700 ${imageLoaded ? 'blur-0 scale-100' : 'blur-xl scale-105'}`}
+            sizes={isMobile ? "(max-width: 400px) 100vw, 400px" : "(max-width: 1200px) 100vw, 1200px"} 
+            className={`object-cover transition-all duration-700 ${isMobile ? 'object-center' : 'object-top'} ${imageLoaded ? 'blur-0 scale-100' : 'blur-xl scale-105'}`}
             onLoad={() => setImageLoaded(true)}
           />
         )}
@@ -69,7 +73,6 @@ export default function ProjectHeroMedia({ title, thumbnailUrl, demoUrl }: Proje
             loop 
             muted 
             playsInline
-            // 👈 التعديل 3: إضافة preload لتحسين استهلاك الذاكرة والإنترنت
             preload="metadata"
             className="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-500 z-10"
           />
