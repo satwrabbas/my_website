@@ -2,7 +2,8 @@
 'use client'
 
 import React from 'react'
-import Marquee from 'react-fast-marquee'
+import useEmblaCarousel from 'embla-carousel-react'
+import AutoScroll from 'embla-carousel-auto-scroll'
 
 export default function MarqueeRow({ 
   children, 
@@ -11,28 +12,39 @@ export default function MarqueeRow({
   children: React.ReactNode, 
   direction?: 'right' | 'left' 
 }) {
-  const adjustedDirection = direction === 'right' ? 'left' : 'right'
+  const scrollSpeed = direction === 'right' ? 1.5 : -1.5
+
+  const [emblaRef] = useEmblaCarousel(
+    { 
+      loop: true,
+      dragFree: true,
+      direction: 'rtl',
+    },
+    [
+      AutoScroll({
+        playOnInit: true,
+        speed: scrollSpeed,
+        stopOnInteraction: false, 
+        stopOnMouseEnter: true, 
+        // 👇 تم حذف سطر delay
+      })
+    ]
+  )
 
   return (
-    // أزلنا overflow-hidden من هنا لنسمح للتوهج بالخروج
-    <div className="w-full py-4 md:py-6" dir="ltr">
-      <Marquee 
-        direction={adjustedDirection} 
-        speed={40} 
-        pauseOnHover={true} 
-        autoFill={true} 
-        gradient={false}
-        // 👈 السر هنا: نجبر المكتبة على جعل حوافها "شفافة/مفتوحة" لكي لا تقص التوهج
-        className="!overflow-visible" 
-        style={{ overflow: 'visible' }} 
+    <div className="w-full py-12 -my-8" dir="rtl">
+      <div 
+        className="overflow-hidden cursor-grab active:cursor-grabbing px-4" 
+        ref={emblaRef}
       >
-        {React.Children.map(children, (child) => (
-          // أعدنا المسافة الطبيعية بين البطاقات بدون أي Padding إضافي
-          <div dir="rtl" className="mx-2 md:mx-4">
-            {child}
-          </div>
-        ))}
-      </Marquee>
+        <div className="flex touch-pan-y">
+          {React.Children.map(children, (child) => (
+            <div className="flex-[0_0_auto] mx-2 md:mx-4">
+              {child}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

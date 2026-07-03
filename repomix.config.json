@@ -1,0 +1,32 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml",
+    "removeComments": false,
+    "showLineNumbers": false
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/.next/**",
+      "**/node_modules/**",
+      "**/public/**",
+      "**/*.ico",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.svg",
+      "**/*.webp",
+      "**/.env*",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "bun.lockb"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}
